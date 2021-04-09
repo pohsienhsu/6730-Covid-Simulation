@@ -2,6 +2,9 @@ import random
 import pylab as plt
 import numpy as np
 import matplotlib.patches as mpatches
+import matplotlib.colors as colors
+
+
 
 
 '''
@@ -35,15 +38,16 @@ DEATH_RATE = 0.05
 
 
 class Person:
-    def __init__(self):
-        self.prevState = 0
-        self.state = 0
-        # if random.random() <= 0.01:
-        #     self.state = 1
-        # else:
+    def __init__(self, chance=INIT_INFECTED):
+        if random.random() <= chance:
+            self.state = 1
+            self.prevState = 1
+        else:
+            self.prevState = 0
+            self.state = 0
 
     def __repr__(self):
-        return f"<Person: state{self.state}>"
+        return f"<Person: state={self.state}>"
 
     def getState(self):
         return self.state
@@ -68,34 +72,29 @@ class Automata:
         self.rows = numrows
         self.cols = numcols
         self.numpeople = numrows * numcols
+        self.day = 0
+
+        # Plotting Purposes
+        self.s_arr = []
+        self.i_arr = []
+        self.r_arr = []
+        self.days = []
 
         self.people = []
-        # Make a (column) list.
-
-        # Create Patient 0
-        # Location: Row & Col
-        patient0Row = 4
-        patient0Col = 5
 
         for i in range(numcols):
             column = []
             # Make a list of (row) cells for each column
             for j in range(numrows):
-                # Create Patient 0
-                if i == patient0Row and j == patient0Col:
-                    # Got you
-                    person = self.getPerson()
-                    person.setState(1)
-                    person.setPrevState(1)
-                else:
-                    person = self.getPerson()
+                person = self.getPerson()
+                
                 column.append(person)
             self.people.append(column)
 
     def __repr__(self):
         return f"<Automata: shape=({self.rows},{self.cols})>"
 
-    def printMatrix(self):
+    def getPeopleState(self):
         mat = []
         for i in range(self.rows):
             column = []
@@ -103,10 +102,16 @@ class Automata:
                 column.append(self.people[i][j].getState())
             # print(f"Row: {i}, Column: {column}")
             mat.append(column)
+        return np.array(mat)
 
-        cmap = {0: [0.1, 0.1, 1.0, 1], 
-                1: [1.0, 0.1, 0.1, 1], 
-                2: [1.0, 0.5, 0.1, 1]}
+
+    def printMatrix(self):
+        mat = self.getPeopleState()
+
+        # cmap = color map
+        cmap = {0: [0.0, 0.0, 1.0, 1], 
+                1: [1.0, 0.0, 0.0, 1], 
+                2: [0.0, 1.0, 0.0, 1]}
                 
         labels = {0: 'Susceptible', 1: 'Infected', 2: 'Recovered'}
         arrayShow = np.array([[cmap[i] for i in j] for j in mat])
@@ -116,24 +121,34 @@ class Automata:
         plt.legend(handles=patches, title="Status",
                    loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
         ax = plt.gca()
-        # ax.set_xticks([x-0.5 for x in range(1, self.cols)], minor=True)
-        # ax.set_yticks([y-0.5 for y in range(1, self.rows)], minor=True)
-        ax.set_xticks(np.arange(-.5, 10, 1))
-        ax.set_yticks(np.arange(-.5, 10, 1))
-        ax.axes.xaxis.set_ticklabels([])
-        ax.axes.yaxis.set_ticklabels([])
-        plt.grid(which="major",color='k', ls="-",lw=2)
+        ax.set_xticks(np.arange(-.5, self.rows, 1))
+        ax.set_yticks(np.arange(-.5, self.cols, 1))
+        ax.xaxis.set_ticklabels([])
+        ax.yaxis.set_ticklabels([])
+        plt.grid(which="major",color='k', ls="-",lw=(200/(self.rows * self.cols)))
+        plt.title(f"Covid-19 Spread Situation - SIR\n Day: {self.day}")
 
-    def getPerson(self):
-        return Person()
 
-    # Subclasses will override this method in order to
-    # position the shapes that represent the cells.
-    def initGraphics(self):
-        print("Warning: Automata.initGraphics() is not implemented!")
+    def accumulateSIR(self):
+        '''
+        Each Day:
+        -> getS, getI, getR => return integer S, I, R in the current day
+        -> Store integer S I R to self.s_arr, self.i_arr, self.r_arr
+        '''
+        self.s_arr.append(self.getS())
+        self.i_arr.append(self.getI())
+        self.r_arr.append(self.getR())
+        self.days.append(self.day)
 
-    def getPeople(self):
-        return self.people
+    def printSIR(self):
+        fig, axes = plt.subplots()
+        axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
+        axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
+        axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0,1.0,0.0))
+        axes.set_xlabel("Days")
+        axes.set_ylabel("Numbers of People")
+        axes.set_title("SIR Curve")
+        axes.legend(["Susceptible", "Infected", "Recovered"])
 
     def nextGeneration(self):
         # Move to the "next" generation
@@ -148,21 +163,8 @@ class Automata:
         for i in range(self.cols):
             for j in range(self.rows):
                 infectedNeighbors = 0
-                iprev = i - 1
-                inext = i + 1
-                jprev = j - 1
-                jnext = j + 1
+                iprev, inext, jprev, jnext = i - 1, i + 1, j - 1, j + 1
 
-                """
-                <Example>
-                Current: 
-                    Center(5, 5) -> (i, j)
-                Neighbor: 
-                    Top(5, 4) -> (i, j - 1) -> self.people[i][jprev]
-                    Down(5, 6) -> (i, j + 1) -> self.people[i][jnext]
-                    Left(4, 5) -> (i - 1, j) -> self.people[iprev][j]
-                    Right(3, 5) -> (i + 1, j) -> self.people[inext][j]
-                """
                 if (jprev >= 0 and self.people[i][jprev].getPrevState() == 1):
                     infectedNeighbors += 1
                 if (jnext < self.rows and self.people[i][jnext].getPrevState() == 1):
@@ -172,17 +174,11 @@ class Automata:
                 if (inext < self.cols and self.people[inext][j].getPrevState() == 1):
                     infectedNeighbors += 1
 
-                # for i,neighbor in enumerate(neighborIndex):
-                #     if neighbor < 0:
-                #         continue
-                #     elif (i==1 and i >= self.rows) or (i == 3 and i>= self.cols):
-                #         continue
-                #     else:
-                #         infectedNeighbors += 1
-
                 currPerson = self.people[i][j]
-                Automata.applyRulesOfInfection(
-                    self, currPerson, infectedNeighbors)
+                self.applyRulesOfInfection(currPerson, infectedNeighbors)
+
+        self.day += 1
+
 
     def applyRulesOfInfection(self, person, infectedNeighbors):
         chance = random.random()
@@ -195,10 +191,37 @@ class Automata:
             if chance <= RECOVERY_RATE:
                 person.setState(2)
 
+    
+    def getPerson(self):
+        return Person()
+
+    def getPeople(self):
+        return self.people
+
+    def getS(self):
+        s = np.count_nonzero(self.getPeopleState() == 0)
+        # print("S: ", s)
+        return s
+
+    def getI(self):
+        i = np.count_nonzero(self.getPeopleState() == 1)
+        # print(f"I: {i}")
+        return i
+
+    def getR(self):
+        r = np.count_nonzero(self.getPeopleState() == 2)
+        # print("R: ", r)
+        return r
 
 if __name__ == "__main__":
-    automata = Automata(10, 10)
-    for n in range(5):
-        automata.nextGeneration()
+    automata = Automata(100, 100)
     automata.printMatrix()
+    print(f"Total People: {automata.numpeople}")
+    print(f"Initial Patient Number: {automata.getI()}")
+    automata.accumulateSIR()
+    for n in range(50):
+        automata.nextGeneration()
+        automata.accumulateSIR()
+    # automata.printMatrix()
+    automata.printSIR()
     plt.show()
