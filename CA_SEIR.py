@@ -218,8 +218,11 @@ class Automata:
             elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                 person.setState(2)
         
+            if chance <= RECOVERY_RATE:
+                person.setState(3)
+        
         # Infectious: 2
-        elif person.prevState == 2 and person.getIncubation() == 0:
+        elif person.prevState == 2:
             if chance <= RECOVERY_RATE:
                 person.setState(3)
         
