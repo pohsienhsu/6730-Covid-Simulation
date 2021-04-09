@@ -2,6 +2,7 @@ import random
 import pylab as plt
 import numpy as np
 import matplotlib.patches as mpatches
+import matplotlib.colors as colors
 
 
 
@@ -108,9 +109,9 @@ class Automata:
         mat = self.getPeopleState()
 
         # cmap = color map
-        cmap = {0: [0.1, 0.1, 1.0, 1], 
-                1: [1.0, 0.1, 0.1, 1], 
-                2: [1.0, 0.5, 0.1, 1]}
+        cmap = {0: [0.0, 0.0, 1.0, 1], 
+                1: [1.0, 0.0, 0.0, 1], 
+                2: [0.0, 1.0, 0.0, 1]}
                 
         labels = {0: 'Susceptible', 1: 'Infected', 2: 'Recovered'}
         arrayShow = np.array([[cmap[i] for i in j] for j in mat])
@@ -124,7 +125,7 @@ class Automata:
         ax.set_yticks(np.arange(-.5, self.cols, 1))
         ax.axes.xaxis.set_ticklabels([])
         ax.axes.yaxis.set_ticklabels([])
-        plt.grid(which="major",color='k', ls="-",lw=(20/(self.rows * self.cols)))
+        plt.grid(which="major",color='k', ls="-",lw=(200/(self.rows * self.cols)))
         plt.title(f"Covid-19 Spread Situation - SIR\n Day: {self.day}")
 
 
@@ -143,10 +144,11 @@ class Automata:
         fig, axes = plt.subplots()
         axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
         axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
-        axes.plot(self.days, self.r_arr, '-', marker='.', color="y")
+        axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0,1.0,0.0))
         axes.set_xlabel("Days")
         axes.set_ylabel("Numbers of People")
         axes.set_title("SIR Curve")
+        axes.legend(["Susceptible", "Infected", "Recovered"])
 
     def nextGeneration(self):
         # Move to the "next" generation
