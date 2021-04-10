@@ -5,16 +5,17 @@ import matplotlib.patches as mpatches
 import matplotlib.colors as colors
 
 
-
-
 '''
 
-Model 101 <SIR/Automata>
+Model 101 <SEIR/Automata>
 
 1. State:
 -> Susceptible: 0
--> Infected: 1 (-> Death Rate: 0.05)
--> Recovered: 2
+-> Exposed: 1
+-> Infected: 2 (-> Death Rate: 0.05)
+-> Recovered: 3
+-> Dead: 4
+
 
 2. Infection Rate:
 -> rate = 0.5 (default)
@@ -25,23 +26,33 @@ Model 101 <SIR/Automata>
 
 4. Analysis:
 -> Print Matrix with imshow
--> Print SIR curve
+-> Print SEIRSD curve
 
 '''
 ###############################
 # Constant
 INIT_INFECTED = 0.01
+# S -> E
 INFECTION_RATE = 0.5
+# Incubation days
+INCUBATION_DAYS = 8
+# E -> I
+EXPOSED_RATE = 0.5
+# I -> R
 RECOVERY_RATE = 0.1
+# R -> S
+SUSCEPTIBLE_RATE = 0.1
+# I -> D
 DEATH_RATE = 0.05
 ###############################
 
 
 class Person:
     def __init__(self, chance=INIT_INFECTED):
+        self.incubation = INCUBATION_DAYS
         if random.random() <= chance:
-            self.state = 1
-            self.prevState = 1
+            self.state = 2
+            self.prevState = 2
         else:
             self.prevState = 0
             self.state = 0
@@ -64,6 +75,13 @@ class Person:
     def copyState(self):
         self.prevState = self.state
 
+    def getIncubation(self):
+        return self.incubation
+
+    def setIncubation(self, incubation):
+        self.incubation = incubation
+
+        
 ########################################################
 
 
@@ -76,8 +94,10 @@ class Automata:
 
         # Plotting Purposes
         self.s_arr = []
+        self.e_arr = []
         self.i_arr = []
         self.r_arr = []
+        self.d_arr = []
         self.days = []
 
         self.people = []
@@ -109,11 +129,13 @@ class Automata:
         mat = self.getPeopleState()
 
         # cmap = color map
-        cmap = {0: [0.0, 0.0, 1.0, 1], 
-                1: [1.0, 0.0, 0.0, 1], 
-                2: [0.0, 1.0, 0.0, 1]}
+        cmap = {0: [0.0, 0.0, 1.0, 1],
+                1: [1.0, 0.7, 0.0, 1], 
+                2: [1.0, 0.0, 0.0, 1], 
+                3: [0.0, 1.0, 0.0, 1],
+                4: [0.5, 0.0, 0.5, 1]}
                 
-        labels = {0: 'Susceptible', 1: 'Infected', 2: 'Recovered'}
+        labels = {0: 'Susceptible', 1: "Exposed", 2: 'Infected', 3: 'Recovered', 4: "Dead"}
         arrayShow = np.array([[cmap[i] for i in j] for j in mat])
         patches = [mpatches.Patch(color=cmap[i], label=labels[i])
                    for i in cmap]
@@ -126,29 +148,33 @@ class Automata:
         ax.xaxis.set_ticklabels([])
         ax.yaxis.set_ticklabels([])
         plt.grid(which="major",color='k', ls="-",lw=(200/(self.rows * self.cols)))
-        plt.title(f"Covid-19 Spread Situation - SIR\n Day: {self.day}")
+        plt.title(f"Covid-19 Spread Situation - SEIRSD\n Day: {self.day}")
 
 
-    def accumulateSIR(self):
+    def accumulateSEIR(self):
         '''
         Each Day:
-        -> getS, getI, getR => return integer S, I, R in the current day
-        -> Store integer S I R to self.s_arr, self.i_arr, self.r_arr
+        -> getS, getE, getI, getR, getD => return integer S, E, I, R, D in the current day
+        -> Store integer S E I R D to self.s_arr, self.e_arr, self.i_arr, self.r_arr, self.d_arr
         '''
         self.s_arr.append(self.getS())
+        self.e_arr.append(self.getE())
         self.i_arr.append(self.getI())
         self.r_arr.append(self.getR())
+        self.d_arr.append(self.getD())
         self.days.append(self.day)
 
-    def printSIR(self):
+    def printSEIR(self):
         fig, axes = plt.subplots()
         axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
+        axes.plot(self.days, self.e_arr, '-', marker='.', color=(1.0, 0.7, 0.0))
         axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
         axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0,1.0,0.0))
+        axes.plot(self.days, self.d_arr, '-', marker='.', color=(0.5,0.0,0.5))
         axes.set_xlabel("Days")
         axes.set_ylabel("Numbers of People")
-        axes.set_title("SIR Curve")
-        axes.legend(["Susceptible", "Infected", "Recovered"])
+        axes.set_title("SEIRSD Curve")
+        axes.legend(["Susceptible", "Exposed", "Infected", "Recovered", "Dead"])
 
     def nextGeneration(self):
         # Move to the "next" generation
@@ -165,13 +191,13 @@ class Automata:
                 infectedNeighbors = 0
                 iprev, inext, jprev, jnext = i - 1, i + 1, j - 1, j + 1
 
-                if (jprev >= 0 and self.people[i][jprev].getPrevState() == 1):
+                if (jprev >= 0 and (self.people[i][jprev].getPrevState() == 1 or self.people[i][jprev].getPrevState() == 2)):
                     infectedNeighbors += 1
-                if (jnext < self.rows and self.people[i][jnext].getPrevState() == 1):
+                if (jnext < self.rows and ( self.people[i][jnext].getPrevState() == 2 or self.people[i][jnext].getPrevState() == 1)):
                     infectedNeighbors += 1
-                if (iprev >= 0 and self.people[iprev][j].getPrevState() == 1):
+                if (iprev >= 0 and ( self.people[iprev][j].getPrevState() == 2 or self.people[iprev][j].getPrevState() == 1)):
                     infectedNeighbors += 1
-                if (inext < self.cols and self.people[inext][j].getPrevState() == 1):
+                if (inext < self.cols and ( self.people[inext][j].getPrevState() == 2 or self.people[inext][j].getPrevState() == 1)):
                     infectedNeighbors += 1
 
                 currPerson = self.people[i][j]
@@ -183,14 +209,36 @@ class Automata:
     def applyRulesOfInfection(self, person, infectedNeighbors):
         chance = random.random()
 
+        # Susceptible: 0
         if person.prevState == 0:
             if infectedNeighbors >= 1:
                 if (chance > (1-INFECTION_RATE)**infectedNeighbors):
                     person.setState(1)
+                    
+        # Exposed: 1
         elif person.prevState == 1:
-            if chance <= RECOVERY_RATE:
+            if person.getIncubation() > 0:
+                person.setIncubation(person.getIncubation() - 1)
+            elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                 person.setState(2)
-
+        
+            if chance <= RECOVERY_RATE:
+                person.setState(3)
+        
+        # Infectious: 2
+        elif person.prevState == 2:
+            if chance <= RECOVERY_RATE:
+                person.setState(3)
+            else:
+                chanceDeath = random.random()
+                if chanceDeath <= DEATH_RATE:
+                    # Dead: 4
+                    person.setState(4)
+        
+        # Recovered: 3
+        elif person.prevState == 3:
+            if chance <= SUSCEPTIBLE_RATE:
+                person.setState(0)
     
     def getPerson(self):
         return Person()
@@ -202,26 +250,37 @@ class Automata:
         s = np.count_nonzero(self.getPeopleState() == 0)
         # print("S: ", s)
         return s
+    
+    def getE(self):
+        e = np.count_nonzero(self.getPeopleState() == 1)
+        # print("E: ", e)
+        return e
 
     def getI(self):
-        i = np.count_nonzero(self.getPeopleState() == 1)
+        i = np.count_nonzero(self.getPeopleState() == 2)
         # print(f"I: {i}")
         return i
 
     def getR(self):
-        r = np.count_nonzero(self.getPeopleState() == 2)
+        r = np.count_nonzero(self.getPeopleState() == 3)
         # print("R: ", r)
         return r
 
+    def getD(self):
+        d = np.count_nonzero(self.getPeopleState() == 4)
+        # print("R: ", r)
+        return d
+    
+
 if __name__ == "__main__":
     automata = Automata(100, 100)
-    automata.printMatrix()
+    # automata.printMatrix()
     print(f"Total People: {automata.numpeople}")
     print(f"Initial Patient Number: {automata.getI()}")
-    automata.accumulateSIR()
-    for n in range(50):
+    automata.accumulateSEIR()
+    for n in range(365):
         automata.nextGeneration()
-        automata.accumulateSIR()
-    # automata.printMatrix()
-    automata.printSIR()
+        automata.accumulateSEIR()
+    automata.printMatrix()
+    automata.printSEIR()
     plt.show()
