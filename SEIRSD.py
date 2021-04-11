@@ -101,8 +101,10 @@ class Automata_SEIRSD(Automata):
                 person.setIncubation(person.getIncubation() - 1)
             elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                 person.setState(2)
-        
-            if chance <= RECOVERY_RATE:
+                return
+
+            chanceRecovery = random.random()
+            if chanceRecovery <= RECOVERY_RATE:
                 person.setState(3)
         
         # Infectious: 2

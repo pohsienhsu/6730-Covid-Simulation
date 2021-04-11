@@ -135,8 +135,10 @@ class Automata_SEIRD(Automata):
                 person.setIncubation(person.getIncubation() - 1)
             elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                 person.setState(2)
+                return
         
-            if chance <= RECOVERY_RATE:
+            chanceRecovery = random.random()
+            if chanceRecovery <= RECOVERY_RATE:
                 person.setState(3)
         
         # Infectious: 2
@@ -162,9 +164,10 @@ if __name__ == "__main__":
     print(f"Total People: {automata.numpeople}")
     print(f"Initial Patient Number: {automata.getI()}")
     automata.accumulateData()
-    for n in range(50):
+    for n in range(200):
         automata.nextGeneration()
         automata.accumulateData()
-    automata.printMatrix(cmap_SEIRD, labels_SEIRD, "SEIRD")
+    automata.printMatrix(cmaps["SEIRD"], labels["SEIRD"], "SEIRD")
     automata.plotCurve()
+    print(f"Total Death Population: {automata.getD()}")
     plt.show()

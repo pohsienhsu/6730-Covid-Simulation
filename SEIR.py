@@ -1,6 +1,5 @@
 from CA import Person, Automata
 from constant import *
-
 import random
 import pylab as plt
 import numpy as np
@@ -130,8 +129,10 @@ class Automata_SEIR(Automata):
                 person.setIncubation(person.getIncubation() - 1)
             elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                 person.setState(2)
+                return
         
-            if chance <= RECOVERY_RATE:
+            chanceRecovery = random.random()
+            if chanceRecovery <= RECOVERY_RATE:
                 person.setState(3)
         
         # Infectious: 2
