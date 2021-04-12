@@ -2,9 +2,6 @@ from CA import Person, Automata
 from constant import *
 import random
 import pylab as plt
-import numpy as np
-import matplotlib.patches as mpatches
-import matplotlib.colors as colors
 
 
 '''
