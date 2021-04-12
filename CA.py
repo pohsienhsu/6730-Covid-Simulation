@@ -2,9 +2,37 @@ import random
 import pylab as plt
 import numpy as np
 import matplotlib.patches as mpatches
-import matplotlib.colors as colors
 from constant import *
 
+'''
+<Agent Based Model - Cellular Automata/SEIRD>
+
+Time: Hour-Based
+1900 - 0700 -> Home
+0700 - 0900 -> Commute (Random Walk)
+0900 - 1700 -> Work 
+1700 - 1900 -> Commute / Happy (Random Walk)
+
+<Agent>
+# Random Walk Reference
+self.x
+self.y
+
+# Location (Maybe not related to the grid geo)
+self.home
+self.work
+self.hospital<Not infectious>
+
+# State(SIR)
+self.state
+(Infectious: Asym, Hospitalized)
+self.age_group(child, adult, elder)
+
+# PPE
+self.mask
+self.vaccinated
+
+'''
 
 class Person:
     def __init__(self):
