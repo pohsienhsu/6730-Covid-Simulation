@@ -73,7 +73,7 @@ class Automata_SEIRD(Automata):
         self.days.append(self.day)
 
     def plotCurve(self):
-        fig, axes = plt.subplots(figsize=(4.8,2.8))
+        fig, axes = plt.subplots(figsize=(4.5, 2.3), dpi=150)
         axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
         axes.plot(self.days, self.e_arr, '-', marker='.', color=(1.0, 0.7, 0.0))
         axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
