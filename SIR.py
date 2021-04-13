@@ -64,7 +64,7 @@ class Automata_SIR(Automata):
 
 
     def plotCurve(self):
-        fig, axes = plt.subplots()
+        fig, axes = plt.subplots(figsize=(4.8, 3.2), dpi=150)
         axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
         axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
         axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0,1.0,0.0))
