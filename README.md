@@ -1,38 +1,6 @@
 # COVID-19 Simulation
-### Checkpoint Requirements
-Submission: A single PDF document. 
 
-There are three components for the submission for the checkpoint: 
-
-* A clear and detailed description of your project (~ 2 - 4 pages, excluding references). 
-
-* At this stage, you should have a clearer idea of the project and the details that you expect would be part of the final submission. 
-
-* Some things to include: 
-
-  a) An abstract summarizing the system and the goals of the project 
-
-  b) Description of the system being studied 
-
-  c) A conceptual model of the system 
-
-  d) Platform(s) of development 
-
-  e) Literature review (if possible) 
-
-  
-
-2. An update of the current state of the project and initial results, if any (max 2 pages) 
-
-Some things to include: 
-
-A “show of progress” via some working code, analysis, or initial modeling attempts 
-
-If there have been any major changes in direction or “course-corrections” since your original proposal, you can describe them here. 
-
-Division of labor: How will you divide up the remaining work among your team? In particular, we will be looking to see that you’ve given thought to how to ensure your project justifies a multi-person (2 or 3, depending on team size) effort. 
-
-### To-Do List
+### ToDo
 1. Find reference coefficient from papers
     - INIT_INFECTED (Initial Patients)
     - INFECTION_RATE (S->E or S->I)
@@ -59,7 +27,6 @@ In other words, how could we implement the behavior of wearing masks/being isola
     - social distance 
       - https://www.nature.com/articles/s41598-021-83540-2
 
-## Draft
 ### Motivation
 COVID-19 has been drastically changing the world during the past year. Throughout all the countries suffering from the pandemics, some countries dealt with it well by enforcing people wearing masks and social distancing, starting from the early stage of the pandemic. Therefore, we would like to model the pandemic to understand the behavior of the virus on human beings through compartmental models such as SIR/SEIR/SEIRD with the topological interaction via Cellular Automata (CA) [9] and then to study the influence of masks/vaccine/social distancing on controlling the outbreak with Agent-Based Model (ABM) [1] [3].
 
@@ -145,8 +112,7 @@ In order to model the interaction throughout people during the pandemics, a regu
     
 
 ### Current Results
-* Cellular Automata <br/>
-  From following figure, it clearly shows the changes of each attribute during the whole period of time. 
+(See Project Checkpoint.pdf)
 
 ### Progress/Colaboration
 [COVID Simulation Project Github](https://github.gatech.edu/phsu40/6730-Covid-Simulation)
