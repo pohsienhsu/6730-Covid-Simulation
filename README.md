@@ -145,8 +145,7 @@ In order to model the interaction throughout people during the pandemics, a regu
     
 
 ### Current Results
-* Cellular Automata <br/>
-  From following figure, it clearly shows the changes of each attribute during the whole period of time. 
+(Shown in Project Checkpoint.pdf)
 
 ### Progress/Colaboration
 [COVID Simulation Project Github](https://github.gatech.edu/phsu40/6730-Covid-Simulation)
