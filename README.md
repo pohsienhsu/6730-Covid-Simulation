@@ -112,7 +112,7 @@ In order to model the interaction throughout people during the pandemics, a regu
     
 
 ### Current Results
-(See Project Checkpoint.pdf)
+(Shown in Project Checkpoint.pdf)
 
 ### Progress/Colaboration
 [COVID Simulation Project Github](https://github.gatech.edu/phsu40/6730-Covid-Simulation)
