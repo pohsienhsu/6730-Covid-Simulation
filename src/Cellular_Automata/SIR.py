@@ -1,5 +1,5 @@
-from CA import Person, Automata
-from constant import *
+from .CA import Person, Automata
+from .constant import *
 
 import random
 import pylab as plt
@@ -128,17 +128,3 @@ class Automata_SIR(Automata):
         r = np.count_nonzero(self.getPeopleState() == 2)
         # print("R: ", r)
         return r
-
-
-if __name__ == "__main__":
-    automata = Automata_SIR(100, 100)
-    # automata.printMatrix(cmap_SIR, labels_SIR)
-    print(f"Total People: {automata.numpeople}")
-    print(f"Initial Patient Number: {automata.getI()}")
-    automata.accumulateData()
-    for n in range(50):
-        automata.nextGeneration()
-        automata.accumulateData()
-    automata.printMatrix(cmaps["SIR"], labels["SIR"])
-    automata.plotCurve()
-    plt.show()
