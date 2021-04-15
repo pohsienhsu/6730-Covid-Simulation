@@ -58,7 +58,12 @@ class ABM:
         self.i_arr = []
         self.r_arr = []
         self.d_arr = []
-        
+
+        for i in range(self.rows):
+            column = []
+            for j in range(self.cols):
+                column.append(None)
+            self.world.append(column)
 
     def __repr__(self):
         return f"<ABM: shape=({self.rows},{self.cols})>"
@@ -66,18 +71,80 @@ class ABM:
     ########################################
     # Methods
     ########################################
-
-    def createWorld(self, num_people, num_companies, num_family):
-        for i in range(self.rows):
-            column = []
-            for j in range(self.cols):
-                column.append(self.people[i][j].getState())
-            # print(f"Row: {i}, Column: {column}")
-            self.world.append(column)
-        
+    def createPeople(self, num_people):
         for i in range(num_people):
-            self.people.append(Person(count, state, prevState, grid_location))
+            chance = random.random()
+            if chance <= INIT_INFECTED:
+                # Infected -> State=2
+                self.people.append(Person(id=i, state=2, prevState=2))
+            else:
+                # Susceptible -> State=0
+                self.people.append(Person(id=i, state=0, prevState=0))
+        # print("Number of People: ", len(self.people))
 
+    def createHouse(self, num_people):
+        for i in range(int(num_people/HOUSE_SIZE)):
+            while True:
+                randomRow = random.randint(0, self.rows-1)
+                randomCol = random.randint(0, self.cols-1)
+                if not self.world[randomRow][randomCol]:
+                    # print(f"House: {i}, ({randomRow}, {randomCol})")
+                    self.world[randomRow][randomCol] = House(i, (randomRow, randomCol))
+                    self.world[randomRow][randomCol].setMembers(self.people[i*HOUSE_SIZE: HOUSE_SIZE*(i+1)])
+                    for person in self.people[i*HOUSE_SIZE: HOUSE_SIZE*(i+1)]:
+                        person.setHouse(self.world[randomRow][randomCol])
+                    break
+    
+    def createOffice(self, num_people):
+        arr = self.people.copy()
+        random.shuffle(arr)
+        for i in range(int(num_people/OFFICE_CAPACITY)):
+            while True:
+                randomRow = random.randint(0, self.rows-1)
+                randomCol = random.randint(0, self.cols-1)
+                if not self.world[randomRow][randomCol]:
+                    # print(f"Office: {i}, ({randomRow}, {randomCol})")
+                    self.world[randomRow][randomCol] = Office(i, (randomRow, randomCol))
+                    self.world[randomRow][randomCol].setEmployees(arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)])
+                    for person in arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)]:
+                        person.setOffice(self.world[randomRow][randomCol])
+                    break
+
+    def createHospital(self, num_hospital=1):
+        for i in range(num_hospital):
+            while True:
+                randomRow = random.randint(0, self.rows-1)
+                randomCol = random.randint(0, self.cols-1)
+                if not self.world[randomRow][randomCol]:
+                    # print(f"Hospital: {i}, ({randomRow}, {randomCol})")
+                    self.world[randomRow][randomCol] = Hospital((randomRow, randomCol))
+                    return
+    
+    def createPath(self):
+        count = 0
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if not self.world[i][j]:
+                    # print(f"Path: {count}, ({i}, {j})")
+                    self.world[i][j] = Path((i, j))
+                    count += 1
+    
+    def createWorld(self, num_people):
+        """
+        Hello World!
+        * Generate random Location Object (House, Office, Path)
+            - Each object should cannot locate in the same cell.
+            - House contains a fixed number (default=4) of Person as a family
+            - Office contains a fixed number (default=40) of Person as a Company
+        * Generate a fixed number (default=1000) of Person in the world
+            - A part of the people are infected with COVID-19 in the first day
+            - The number of the initial patients are decided by a rate in the constant, thus, the number varies in each simulation
+        """
+        self.createPeople(num_people)
+        self.createHouse(num_people)
+        self.createOffice(num_people)
+        self.createHospital(num_people)
+        self.createPath()
 
     def getPeopleState(self):
         mat = []
@@ -168,17 +235,17 @@ class ABM:
     # Getters & Setters
     ########################################
 
+    def getWorld(self):
+        return self.world
+
     def getDay(self):
         return self.time//24
 
     def getHour(self):
         return self.time%24
     
-    # def getPerson(self):
-    #     return Person()
-
-    # def getPeople(self):
-    #     return self.people
+    def getPeople(self):
+        return self.people
 
     def getS(self):
         s = np.count_nonzero(self.getPeopleState() == 0)

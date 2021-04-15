@@ -13,6 +13,10 @@ RECOVERY_RATE = 0.2
 SUSCEPTIBLE_RATE = 0.1
 # I -> D
 DEATH_RATE = 0.05
+
+HOUSE_SIZE = 4
+
+OFFICE_CAPACITY = 40
 ###############################
 
 cmaps = {

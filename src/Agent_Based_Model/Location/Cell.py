@@ -9,7 +9,7 @@ class Cell:
     grid_location: tuple (ex. (x,y))
     """
     def __init__(self, grid_location:tuple):
-        self.grid_location = location
+        self.grid_location = grid_location
 
     def __repr__(self):
         return f"<Cell: id={id(self)} loc={self.grid_location}>"

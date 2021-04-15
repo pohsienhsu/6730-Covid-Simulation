@@ -18,7 +18,8 @@ class Path(Cell):
         self.capacity = capacity
         self.passengers = passengers #[...<person>]
         
-    
+    def __repr__(self):
+        return f"<Path: id={id(self)} loc={self.grid_location}>"
     ########################################
     # Methods
     ########################################
@@ -29,10 +30,10 @@ class Path(Cell):
     # Getters & Setters
     ########################################
 
-    def getMember(self):
+    def getPassengers(self):
         return self.passengers
 
-    def setMember(self, passengers):
+    def setPassengers(self, passengers):
         self.passengers = passengers
 
     def getCapacity(self):

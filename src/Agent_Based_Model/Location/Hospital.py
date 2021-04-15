@@ -18,6 +18,9 @@ class Hospital(Cell):
         self.capacity = capacity
         self.patients = patients
 
+    def __repr__(self):
+        return f"<Hospital: id={id(self)} loc={self.grid_location}>"
+
     ########################################
     # Methods
     ########################################
