@@ -1,5 +1,5 @@
-from CA import Person, Automata
-from constant import *
+from .CA import Person, Automata
+from .constant import *
 
 import random
 import pylab as plt
@@ -111,17 +111,3 @@ class Automata_SEIRS(Automata):
 
     def getPerson(self):
         return Person_SEIRS()
-
-
-if __name__ == "__main__":
-    automata = Automata_SEIRS(100, 100)
-    # automata.printMatrix()
-    print(f"Total People: {automata.numpeople}")
-    print(f"Initial Patient Number: {automata.getI()}")
-    automata.accumulateData()
-    for n in range(50):
-        automata.nextGeneration()
-        automata.accumulateData()
-    automata.printMatrix(cmaps["SEIRS"], labels["SEIRS"], "SEIRS")
-    automata.plotCurve()
-    plt.show()
