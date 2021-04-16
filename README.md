@@ -69,9 +69,9 @@ In order to model the interaction throughout people during the pandemics, a regu
 
       3. Time (Hour-Based) <br/>
         Our ABM model would be based on an hourly-timed axis. Each Person (individual) would have their next move after each hour. They would be either commuting through random walk or staying at their designated Home or Office according to the time.<br/>
-        - 19:00 - 07:00 -> Home (At House)
-        - 07:00 - 09:00 -> Commute (Random Walk: 1 step/hr) 
-        - 09:00 - 17:00 -> Work (At Office)
+        - 19:00 - 07:00 -> Home (At House)\
+        - 07:00 - 09:00 -> Commute (Random Walk: 1 step/hr)\
+        - 09:00 - 17:00 -> Work (At Office)\
         - 17:00 - 19:00 -> Commute (Random Walk: 1 step/hr)
 
   - ABM Rule:
