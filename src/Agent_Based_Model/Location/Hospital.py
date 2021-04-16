@@ -1,5 +1,6 @@
 from ..Constant.constant import *
 from .Cell import Cell
+import sys
 
 class Hospital(Cell):
     """
@@ -13,9 +14,9 @@ class Hospital(Cell):
     capacity: int
     patients: list (a list of Person class)
     """
-    def __init__(self, grid_location:tuple, patients:list=[], capacity:int=0):
+    def __init__(self, grid_location:tuple, patients:list=[]:
         super().__init__(grid_location)
-        self.capacity = capacity
+        self.capacity = sys.maxsize
         self.patients = patients
 
     def __repr__(self):
@@ -30,11 +31,10 @@ class Hospital(Cell):
     ########################################
     # Getters & Setters
     ########################################
-
-    def getMember(self):
+    def getPatients(self):
         return self.patients
 
-    def setMember(self, patients):
+    def setPatients(self, patients):
         self.patients = patients
 
     def getCapacity(self):
