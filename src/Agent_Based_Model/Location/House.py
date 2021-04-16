@@ -13,10 +13,10 @@ class House(Cell):
     capacity: int
     members: list (a list of Person class)
     """
-    def __init__(self, id:int, grid_location:tuple, members:list=[], capacity:int=4):
+    def __init__(self, id:int, grid_location:tuple, members:list=[]):
         super().__init__(grid_location)
         self.id = id
-        self.capacity = capacity
+        self.capacity = HOUSE_SIZE
         self.guests = []
         self.members = members #[...<person>]
 

@@ -17,6 +17,16 @@ DEATH_RATE = 0.05
 HOUSE_SIZE = 4
 
 OFFICE_CAPACITY = 40
+
+HOME_TIME = [0, 1, 2, 3, 4, 5, 6, 19, 20, 21, 22, 23]
+
+COMMUTE_TIME = [7, 8, 17, 18]
+
+WORK_TIME = [9, 10, 11, 12, 13, 14, 15, 16]
+
+WEAR_MASK = 0.5
+
+VACCINATED = 0.9
 ###############################
 
 cmaps = {

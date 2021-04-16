@@ -18,7 +18,7 @@ class Person:
         self.prevState = prevState
         self.grid_location = None
         self.association = {"office": None, "house": None}
-        if (medical):
+        if (not medical):
             self.medical = {
                 "mask": False,
                 "vaccinated": False,
@@ -69,14 +69,40 @@ class Person:
     
     def setGridLocation(self, grid_location):
         self.grid_location = grid_location
-
     
     def getMedical(self):
         return self.medical
     
     def setMedical(self, medical):
         self.medical = medical
+
+    def getMask(self):
+        return self.medical["mask"]
     
+    def setMask(self, bool):
+        self.medical["mask"] = bool
+
+    def getVaccinated(self):
+        return self.medical["vaccinated"]
+
+    def setVaccinated(self, bool):
+        self.medical["vaccinated"] = bool
+
+    def getHospitalized(self):
+        return self.medical["hospitalized"]
+    
+    def setHospitalized(self, bool):
+        self.medical["hospitalized"] = bool
+    
+    def getIncubation(self):
+        return self.medical["incubation"]
+
+    def setIncubation(self, day):
+        self.medical["incubation"] = day
+
+    def decreaseIncubation(self):
+        self.medical["incubation"] -= 1
+
     def getHouse(self):
         return self.association["house"]
     

@@ -18,7 +18,7 @@ from .Location.Office import Office
 Time: Hour-Based
 1900 - 0700 -> Home
 0700 - 0900 -> Commute (Random Walk)
-0900 - 1700 -> Work 
+0900 - 1700 -> Work
 1700 - 1900 -> Commute / Happy (Random Walk)
 
 <Agent>
@@ -43,14 +43,16 @@ self.vaccinated
 '''
 
 class ABM:
-    def __init__(self, numcols:int = 100, numrows:int = 100):
+    def __init__(self, numcols: int = 100, numrows: int = 100):
         self.world = []
         self.rows = numrows
         self.cols = numcols
         self.time = 0
         self.people = []
-        self.companies = []
-        self.families = []
+        self.dead = []
+        self.offices = []
+        self.houses = []
+        self.hospitals = []
 
         # Plotting Purposes - Keep Record of the number of SEIRD in every hour
         self.s_arr = []
@@ -58,6 +60,7 @@ class ABM:
         self.i_arr = []
         self.r_arr = []
         self.d_arr = []
+        self.days = []
 
         for i in range(self.rows):
             column = []
@@ -71,7 +74,18 @@ class ABM:
     ########################################
     # Methods
     ########################################
-    def createPeople(self, num_people):
+    def generate_coord(self) -> tuple:
+        """
+        generate random coordintates according to the rows and cols of the grid
+        """
+        return random.randint(0, self.rows-1), random.randint(0, self.cols-1)
+
+    def createPeople(self, num_people: int):
+        """
+        Randomlize create people for ABM according to the params
+        @params:
+        num_people: int
+        """
         for i in range(num_people):
             chance = random.random()
             if chance <= INIT_INFECTED:
@@ -83,44 +97,65 @@ class ABM:
         # print("Number of People: ", len(self.people))
 
     def createHouse(self, num_people):
+        """
+        Randomlize create house for ABM according to the params
+        @params:
+        num_people: int
+        (num_house = num_people/4)
+        """
         for i in range(int(num_people/HOUSE_SIZE)):
             while True:
-                randomRow = random.randint(0, self.rows-1)
-                randomCol = random.randint(0, self.cols-1)
+                randomRow, randomCol = self.generate_coord()
                 if not self.world[randomRow][randomCol]:
                     # print(f"House: {i}, ({randomRow}, {randomCol})")
                     self.world[randomRow][randomCol] = House(i, (randomRow, randomCol))
+                    self.houses.append(self.world[randomRow][randomCol])
                     self.world[randomRow][randomCol].setMembers(self.people[i*HOUSE_SIZE: HOUSE_SIZE*(i+1)])
                     for person in self.people[i*HOUSE_SIZE: HOUSE_SIZE*(i+1)]:
                         person.setHouse(self.world[randomRow][randomCol])
                     break
-    
+
     def createOffice(self, num_people):
+        """
+        Randomlize create office for ABM according to the params
+        @params:
+        num_people: int
+        (num_house = num_people/40)
+        """
         arr = self.people.copy()
         random.shuffle(arr)
         for i in range(int(num_people/OFFICE_CAPACITY)):
             while True:
-                randomRow = random.randint(0, self.rows-1)
-                randomCol = random.randint(0, self.cols-1)
+                randomRow, randomCol = self.generate_coord()
                 if not self.world[randomRow][randomCol]:
                     # print(f"Office: {i}, ({randomRow}, {randomCol})")
                     self.world[randomRow][randomCol] = Office(i, (randomRow, randomCol))
+                    self.offices.append(self.world[randomRow][randomCol])
                     self.world[randomRow][randomCol].setEmployees(arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)])
                     for person in arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)]:
                         person.setOffice(self.world[randomRow][randomCol])
                     break
 
     def createHospital(self, num_hospital=1):
+        """
+        Randomlize create hospital for ABM according to the params
+        @params:
+        num_hospital: int
+        """
         for i in range(num_hospital):
             while True:
-                randomRow = random.randint(0, self.rows-1)
-                randomCol = random.randint(0, self.cols-1)
+                randomRow, randomCol = self.generate_coord()
                 if not self.world[randomRow][randomCol]:
-                    # print(f"Hospital: {i}, ({randomRow}, {randomCol})")
+                    print(f"Hospital: {i}, ({randomRow}, {randomCol})")
                     self.world[randomRow][randomCol] = Hospital((randomRow, randomCol))
-                    return
-    
+                    self.hospitals.append(self.world[randomRow][randomCol])
+                    break
+
     def createPath(self):
+        """
+        Randomlize create path for ABM according to the params
+        Fills in the rest of the empty cells on the grid
+        """
         count = 0
         for i in range(self.rows):
             for j in range(self.cols):
@@ -128,7 +163,7 @@ class ABM:
                     # print(f"Path: {count}, ({i}, {j})")
                     self.world[i][j] = Path((i, j))
                     count += 1
-    
+
     def createWorld(self, num_people):
         """
         Hello World!
@@ -143,18 +178,18 @@ class ABM:
         self.createPeople(num_people)
         self.createHouse(num_people)
         self.createOffice(num_people)
-        self.createHospital(num_people)
+        self.createHospital()
         self.createPath()
 
     def getPeopleState(self):
-        mat = []
+        p_states = []
         for i in range(self.rows):
             column = []
             for j in range(self.cols):
                 column.append(self.people[i][j].getState())
             # print(f"Row: {i}, Column: {column}")
-            mat.append(column)
-        return np.array(mat)
+            p_states.append(column)
+        return np.array(p_states)
 
     # def printMatrix(self, cmap, labels, model="SIR"):
     #     mat = self.getPeopleState()
@@ -173,6 +208,223 @@ class ABM:
     #     plt.grid(which="major",color='k', ls="-",lw=(200/(self.rows * self.cols)))
     #     plt.title(f"Covid-19 Spread Situation - {model}\n Day: {self.day}")
 
+    def randomWalk(self):
+        """
+        All person walks from different starting point during each commute period
+        - self.grid_location update
+        """
+        for p in self.people:
+            currX, currY = p.getGridLocation()
+            newX, newY = currX + \
+                random.randint(-1, 1), currY + random.randint(-1, 1)
+            while True:
+                if (currX, currY) != (newX, newY) and newX < self.rows and newX >= 0 and newY < self.cols and newY >= 0:
+                    break
+                newX, newY = currX + \
+                    random.randint(-1, 1), currY + random.randint(-1, 1)
+            p.setGridLocation(newX, newY)
+
+    def timeAdvance(self):
+        pass
+
+    def wearMask(self):
+        pass
+    
+    def getVaccinated(self):
+        pass
+
+    def removeDead(self, zombieMode=False):
+        """
+        Removes dead people from associated locations
+        including houses, offices, and hosptials
+        """
+        # inner function for filtering people in state 4 (Dead)
+        def findDead(person):
+            if person.getState() == 4:
+                return False
+            else:
+                return True
+        # remove dead people
+        if not zombieMode:
+            for p in self.people:
+                if p.getState() == 4:
+                    self.dead.append(p)
+                self.people = filter(findDead, self.people)
+        # remove dead people from houses
+        for h in self.houses:
+            h_removed = filter(findDead, h.getMembers())
+            h.setMembers(h_removed)
+        # remove dead people from offices
+        for o in self.offices:
+            o_removed = filter(findDead, o.getEmployees())
+            o.setEmployees(o_removed)
+        # remove dead people from hospitals
+        for hos in self.hospitals:
+            hos_removed = filter(findDead, hos.getPatients())
+            hos.setEmployees(hos_removed)
+
+
+    def nextGeneration(self):
+        """
+        1. Move to the "next" generation
+        """
+        for i in range(len(self.people)):
+            self.people[i].copyState()
+
+        """
+        2. Time Check - Actions vary in differnt hour
+            * 1900 - 0700 -> Home
+            * 0700 - 0900 -> Commute (Random Walk)
+            * 0900 - 1700 -> Work
+            * 1700 - 1900 -> Commute / Happy (Random Walk)
+        """
+        currentDay = self.getDay()
+        currentHour = self.getHour()
+        print(f"Day{currentDay} at {currentHour}:00")
+        # Home
+        if currentHour in HOME_TIME:
+            # 1. Check current location
+            if currentHour == 19:
+                for person in self.people:
+                    person.setGridLocation(person.getHouse().getGridLoaction())
+
+            # 2. Speard of virus
+            for house in self.houses:
+                # Get healthy and infected people
+                healthyPeople = []
+                patients = []
+                for person in house.getMembers():
+                    if person.getState() == 0 or person.getState() == 3:
+                        ABM.applyRules(person, currentHour)
+                        healthyPeople.append(person)
+                    elif person.getState() == 1 or person.getState() == 2:
+                        patients.append(person)
+                
+                # Infect healthy people
+                for person in healthyPeople:
+                    chance = random.random()
+                    if chance > (1-INFECTION_RATE)**(len(patients)):
+                        person.setState(1)
+
+        # Commute
+        elif currentHour in COMMUTE_TIME:
+            # 1. Check current location
+            self.randomWalk()
+
+            # 2. Spread of virus
+            infectedGrid = {}
+            for person in self.people:
+                if person.getState() == 1 or person.getState() == 2:
+                    if person.getGridLocation() not in infectedGrid.keys():
+                        infectedGrid[person.getGridLocation()] = 1
+                    else:
+                        infectedGrid[person.getGridLocation()] += 1
+            
+            for person in self.people:
+                if person.getState() == 0 or person.getState() == 3:
+                    if person.getGridLocation() in infectedGrid.keys():
+                        chance = random.random()
+                        if chance > (1-INFECTION_RATE)**(infectedGrid[person.getGridLocation()]):
+                            person.setState(1)
+
+            # Work
+        elif currentHour in WORK_TIME:
+            # 1. Check current location
+            if currentHour == 9:
+                for person in self.people:
+                    person.setGridLocation(person.getOffice().getGridLoaction())
+
+            # 2. Spread of virus
+            for office in self.offices:
+                # Get healthy and infected people
+                healthyPeople = []
+                patients = []
+                for person in office.getEmployees():
+                    if person.getState() == 0 or person.getState() == 3:
+                        healthyPeople.append(person)
+                    elif person.getState() == 1 or person.getState() == 2:
+                        patients.append(person)
+                
+                # Infect healthy people
+                for person in healthyPeople:
+                    chance = random.random()
+                    if chance > (1-INFECTION_RATE)**(len(patients)):
+                        person.setState(1)
+
+        """
+        3. Update at 00:00
+            * Remove dead people
+            * Get daily SEIRD data
+            * Wear Mask/Get Vaccinated/Hospitalized
+            * Recovery (Implemented in applyRules)
+        """
+        if currentHour == 0:
+            self.removeDead()
+            self.accumulateData()
+            
+        """
+        4. Time Progression (hourly)
+        """
+        self.time += 1
+    
+    def rulesHome(self, person, currentHour:int):
+        # 1. Check current location
+        if currentHour == 19:
+            for person in self.people:
+                person.setGridLocation(person.getHouse().getGridLoaction())
+
+        # 2. Speard of virus
+        for house in self.houses:
+            # Get healthy and infected people
+            healthyPeople = []
+            patients = []
+            for person in house.getMembers():
+                if person.getState() == 0 or person.getState() == 3:
+                    ABM.applyRules(person, currentHour)
+                    healthyPeople.append(person)
+                elif person.getState() == 1 or person.getState() == 2:
+                    patients.append(person)
+                
+                # Infect healthy people
+                for person in healthyPeople:
+                    chance = random.random()
+                    if chance > (1-INFECTION_RATE)**(len(patients)):
+                        person.setState(1)
+
+    def applyRules(self, person, currentHour:int):
+        """
+        Rules of SEIRD model to apply for ABM
+        @params:
+        person: Person (individuals)
+        currentHour: int (the current hour time)
+        """
+        chance = random.random()
+        # Susceptible: 0
+        if person.getPrevState() == 0:
+            pass
+        # Exposed: 1
+        elif person.getPrevState() == 1 and currentHour == 0:
+            if person.getIncubation() > 0:
+                person.decreaseIncubation()
+            elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
+                person.setState(2)
+                return
+            # chanceRecovery = random.random()
+            # if chanceRecovery <= RECOVERY_RATE:
+            #     person.setState(3)
+
+        # Infectious: 2
+        elif person.prevState == 2 and currentHour == 0:
+            if chance <= RECOVERY_RATE:
+                # Recovered: 3
+                person.setState(3)
+            else:
+                chanceDeath = random.random()
+                if chanceDeath <= DEATH_RATE:
+                    # Dead: 4
+                    person.setState(4)
+
+
     def accumulateData(self):
         '''
         Each Day:
@@ -184,53 +436,20 @@ class ABM:
         self.i_arr.append(self.getI())
         self.r_arr.append(self.getR())
         self.d_arr.append(self.getD())
-        self.days.append(self.day)
+        self.days.append(self.getDay())
 
     def plotCurve(self):
         fig, axes = plt.subplots(figsize=(4.5, 2.3), dpi=150)
         axes.plot(self.days, self.s_arr, '-', marker='.', color="b")
         axes.plot(self.days, self.e_arr, '-', marker='.', color=(1.0, 0.7, 0.0))
         axes.plot(self.days, self.i_arr, '-', marker='.', color="r")
-        axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0,1.0,0.0))
+        axes.plot(self.days, self.r_arr, '-', marker='.', color=(0.0, 1.0, 0.0))
         axes.plot(self.days, self.d_arr, '-', marker='.', color=(0.5, 0, 0.5, 1))
         axes.set_xlabel("Days")
         axes.set_ylabel("Numbers of People")
         axes.set_title("SEIRD Curve")
         axes.legend(["Susceptible", "Exposed", "Infected", "Recovered", "Dead"])
 
-    def nextGeneration(self):
-        # Move to the "next" generation
-        for i in range(self.cols):
-            for j in range(self.rows):
-                self.people[i][j].copyState()
-
-        """
-        if Top, down, left, right is infected 
-            -> the center person will be infected by a chance of INFECTION_RATE
-        """
-        for i in range(self.cols):
-            for j in range(self.rows):
-                infectedNeighbors = 0
-                iprev, inext, jprev, jnext = i - 1, i + 1, j - 1, j + 1
-
-                if (jprev >= 0 and (self.people[i][jprev].getPrevState() == 1 or self.people[i][jprev].getPrevState() == 2)):
-                    infectedNeighbors += 1
-                if (jnext < self.rows and ( self.people[i][jnext].getPrevState() == 2 or self.people[i][jnext].getPrevState() == 1)):
-                    infectedNeighbors += 1
-                if (iprev >= 0 and ( self.people[iprev][j].getPrevState() == 2 or self.people[iprev][j].getPrevState() == 1)):
-                    infectedNeighbors += 1
-                if (inext < self.cols and ( self.people[inext][j].getPrevState() == 2 or self.people[inext][j].getPrevState() == 1)):
-                    infectedNeighbors += 1
-
-                currPerson = self.people[i][j]
-                self.applyRulesOfInfection(currPerson, infectedNeighbors)
-
-        self.day += 1
-
-
-    def applyRulesOfInfection(self, person, infectedNeighbors):
-        pass
-    
     ########################################
     # Getters & Setters
     ########################################
@@ -243,15 +462,21 @@ class ABM:
 
     def getHour(self):
         return self.time%24
-    
+
     def getPeople(self):
         return self.people
+
+    def getPeopleState(self):
+        peopleState = []
+        for person in self.people:
+             peopleState.append(person.getState())
+        return peopleState
 
     def getS(self):
         s = np.count_nonzero(self.getPeopleState() == 0)
         # print("S: ", s)
         return s
-    
+
     def getE(self):
         e = np.count_nonzero(self.getPeopleState() == 1)
         # print("E: ", e)
@@ -268,7 +493,6 @@ class ABM:
         return r
 
     def getD(self):
-        d = np.count_nonzero(self.getPeopleState() == 4)
+        d = len(self.dead)
         # print("R: ", r)
         return d
-    

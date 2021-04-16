@@ -13,12 +13,12 @@ class Office(Cell):
     capacity: int
     employees: list (a list of Person class)
     """
-    def __init__(self, id:int ,grid_location:tuple, employees:list=[], capacity:int=40):
+    def __init__(self, id:int ,grid_location:tuple, employees:list=[]):
         super().__init__(grid_location)
         self.id = id
         self.employees = employees
         self.guests = []
-        self.capacity = capacity
+        self.capacity = OFFICE_CAPACITY
     
     def __repr__(self):
         return f"<Office: id={self.id} loc={self.grid_location}>"
