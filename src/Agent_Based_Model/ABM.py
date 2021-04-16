@@ -167,11 +167,11 @@ class ABM:
     def createWorld(self, num_people):
         """
         Hello World!
-        * Generate random Location Object (House, Office, Path)
+        - Generate random Location Object (House, Office, Path)
             - Each object should cannot locate in the same cell.
             - House contains a fixed number (default=4) of Person as a family
             - Office contains a fixed number (default=40) of Person as a Company
-        * Generate a fixed number (default=1000) of Person in the world
+        - Generate a fixed number (default=1000) of Person in the world
             - A part of the people are infected with COVID-19 in the first day
             - The number of the initial patients are decided by a rate in the constant, thus, the number varies in each simulation
         """
@@ -267,16 +267,27 @@ class ABM:
     def nextGeneration(self):
         """
         1. Move to the "next" generation
+        2. Time Check - Actions vary in differnt hour
+            - 1900 - 0700 -> Home
+            - 0700 - 0900 -> Commute (Random Walk)
+            - 0900 - 1700 -> Work
+            - 1700 - 1900 -> Commute / Happy (Random Walk)
+        3. Update at 00:00
+            - Remove dead people
+            - Get daily SEIRD data
+            - Wear Mask/Get Vaccinated/Hospitalized
+            - Recovery (Implemented in applyRules)
+        4. Time Progression (hourly)
+        """
+
+        """
+        1. Move to the "next" generation
         """
         for i in range(len(self.people)):
             self.people[i].copyState()
 
         """
         2. Time Check - Actions vary in differnt hour
-            * 1900 - 0700 -> Home
-            * 0700 - 0900 -> Commute (Random Walk)
-            * 0900 - 1700 -> Work
-            * 1700 - 1900 -> Commute / Happy (Random Walk)
         """
         currentDay = self.getDay()
         currentHour = self.getHour()
@@ -353,10 +364,6 @@ class ABM:
 
         """
         3. Update at 00:00
-            * Remove dead people
-            * Get daily SEIRD data
-            * Wear Mask/Get Vaccinated/Hospitalized
-            * Recovery (Implemented in applyRules)
         """
         if currentHour == 0:
             self.removeDead()
