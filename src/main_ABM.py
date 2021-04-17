@@ -1,6 +1,7 @@
 from Agent_Based_Model.Constant.constant import *
 from Agent_Based_Model.ABM import *
 
+
 world = ABM()
 world.createWorld(num_people=1000)
 day = 20

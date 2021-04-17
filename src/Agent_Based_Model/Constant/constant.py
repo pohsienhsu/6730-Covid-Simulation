@@ -2,15 +2,15 @@
 ###############################
 INIT_INFECTED = 0.01
 # S -> E
-INFECTION_RATE = 0.9
+INFECTION_RATE = 0.1
 # Incubation days
 INCUBATION_DAYS = 7
 # E -> I
-EXPOSED_RATE = 0.9
+EXPOSED_RATE = 0.8
 # I -> R
 RECOVERY_RATE = 0.1
-# R -> S
-SUSCEPTIBLE_RATE = 0.1
+# # R -> S
+# SUSCEPTIBLE_RATE = 0.1
 # I -> D
 DEATH_RATE = 0.05
 

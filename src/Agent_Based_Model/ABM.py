@@ -181,15 +181,6 @@ class ABM:
         self.createHospital()
         self.createPath()
 
-    def getPeopleState(self):
-        p_states = []
-        for i in range(self.rows):
-            column = []
-            for j in range(self.cols):
-                column.append(self.people[i][j].getState())
-            # print(f"Row: {i}, Column: {column}")
-            p_states.append(column)
-        return np.array(p_states)
 
     # def printMatrix(self, cmap, labels, model="SIR"):
     #     mat = self.getPeopleState()
@@ -448,6 +439,8 @@ class ABM:
         axes.set_ylabel("Numbers of People")
         axes.set_title("SEIRD Curve")
         axes.legend(["Susceptible", "Exposed", "Infected", "Recovered", "Dead"])
+        plt.show()
+
 
     ########################################
     # Getters & Setters
@@ -469,7 +462,7 @@ class ABM:
         peopleState = []
         for person in self.people:
              peopleState.append(person.getState())
-        return peopleState
+        return np.array(peopleState)
 
     def getS(self):
         s = np.count_nonzero(self.getPeopleState() == 0)
