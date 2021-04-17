@@ -14,7 +14,7 @@ class Hospital(Cell):
     capacity: int
     patients: list (a list of Person class)
     """
-    def __init__(self, grid_location:tuple, patients:list=[]:
+    def __init__(self, grid_location:tuple, patients:list=[]):
         super().__init__(grid_location)
         self.capacity = sys.maxsize
         self.patients = patients
