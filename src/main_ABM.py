@@ -3,8 +3,17 @@ from Agent_Based_Model.ABM import *
 
 world = ABM()
 world.createWorld(num_people=1000)
-# for i in range(20):
-#     for j in range(20):
-#         print(f"Location({i}, {j}), {world.getWorld()[i][j]}")
-for person in world.getPeople():
-    print(f"Person {person.getID()}: {person.getHouse()} | {person.getOffice()}")
+day = 20
+hour = 20*24
+
+for h in range(hour):
+    world.nextGeneration()
+
+# print(len(world.getPeopleState()))
+print("S: ", world.getS_Arr())
+print("E: ", world.getE_Arr())
+print("I: ", world.getI_Arr())
+print("R: ", world.getR_Arr())
+print("D: ", world.getDays_Arr())
+print("Days: ", world.getDays_Arr())
+world.plotCurve()
