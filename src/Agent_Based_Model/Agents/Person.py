@@ -79,20 +79,20 @@ class Person:
     def getMask(self):
         return self.medical["mask"]
     
-    def setMask(self, bool):
-        self.medical["mask"] = bool
+    def setMask(self, mask):
+        self.medical["mask"] = mask
 
     def getVaccinated(self):
         return self.medical["vaccinated"]
 
-    def setVaccinated(self, bool):
-        self.medical["vaccinated"] = bool
+    def setVaccinated(self, vaccinated):
+        self.medical["vaccinated"] = vaccinated
 
     def getHospitalized(self):
         return self.medical["hospitalized"]
     
-    def setHospitalized(self, bool):
-        self.medical["hospitalized"] = bool
+    def setHospitalized(self, hospitalized):
+        self.medical["hospitalized"] = hospitalized
     
     def getIncubation(self):
         return self.medical["incubation"]

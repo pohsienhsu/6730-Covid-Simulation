@@ -5,12 +5,12 @@ import random
 
 from .Constant.constant import *
 from .Agents.Person import Person
-from .Agents.Company import Company
-from .Agents.Family import Family
 from .Location.Path import Path
 from .Location.Hospital import Hospital
 from .Location.House import House
 from .Location.Office import Office
+
+from ..Cellular_Automata.SEIRD import Person_SEIRD, Automata_SEIRD
 
 '''
 <Agent Based Model - Cellular Automata/SEIRD>
@@ -131,7 +131,10 @@ class ABM:
                     # print(f"Office: {i}, ({randomRow}, {randomCol})")
                     self.world[randomRow][randomCol] = Office(i, (randomRow, randomCol))
                     self.offices.append(self.world[randomRow][randomCol])
+                    # 1. 
                     self.world[randomRow][randomCol].setEmployees(arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)])
+                    # 2. 
+                    self.world[randomRow][randomCol]
                     for person in arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)]:
                         person.setOffice(self.world[randomRow][randomCol])
                     break
@@ -268,22 +271,24 @@ class ABM:
             - Recovery (Implemented in applyRules)
         4. Time Progression (hourly)
         """
-        #####################################
-        """
-        1. Move to the "next" generation
-        """
+        # 1. Move to the "next" generation
         for i in range(len(self.people)):
             self.people[i].copyState()
-
-        """
-        2. Time Check - Actions vary in differnt hour
-        """
+    
+        # 2. Time Check - Actions vary in differnt hour
         currentDay = self.getDay()
         currentHour = self.getHour()
         print(f"Day{currentDay} at {currentHour}:00")
+
+        # 3. Update at 00:00
+        if currentHour == 0:
+            self.removeDead()
+            self.accumulateData()
+
         # Home
         if currentHour in HOME_TIME:
-            # 1. Check current location
+            # 1. Check current location:
+            # Check time: 19:00 & the initial time (first hour of the first day)
             if currentHour == 19 or (currentHour == 0 and currentDay == 0):
                 for person in self.people:
                     person.setGridLocation(person.getHouse().getGridLocation())
@@ -298,16 +303,24 @@ class ABM:
                         healthyPeople.append(person)
                     elif person.getState() == 1 or person.getState() == 2:
                         patients.append(person)
+                        ABM.applyRules(person, currentHour, currentDay)
                 
                 # Infect healthy people
                 for person in healthyPeople:
-                    ABM.applyRules(person, currentHour, len(patients))
+                    ABM.applyRules(person, currentHour, currentDay, len(patients))
+        
         # Commute
         elif currentHour in COMMUTE_TIME:
             # 1. Check current location
             self.randomWalk()
 
             # 2. Spread of virus
+            '''
+            InfectedGrid (dict) store the
+                key: location (tuple) 
+                value: total number of infected people on that location
+            If there is an exposed or infected person on that location, the value will plus 1.
+            '''
             infectedGrid = {}
             for person in self.people:
                 if person.getState() == 1 or person.getState() == 2:
@@ -315,13 +328,15 @@ class ABM:
                         infectedGrid[person.getGridLocation()] = 1
                     else:
                         infectedGrid[person.getGridLocation()] += 1
-            
+            '''
+            Loop through each person. If the person is susceptible 
+            and stand on same location with infected or exposed people, we applied the applyRules function
+            '''
             for person in self.people:
-                if person.getState() == 0 or person.getState() == 3:
-                    if person.getGridLocation() in infectedGrid.keys():
-                        ABM.applyRules(person, currentHour, infectedGrid[person.getGridLocation()])
+                if person.getState() == 0 and person.getGridLocation() in infectedGrid.keys():
+                    ABM.applyRules(person, currentHour, currentDay, infectedGrid[person.getGridLocation()])
 
-            # Work
+        # Work
         elif currentHour in WORK_TIME:
             # 1. Check current location
             if currentHour == 9:
@@ -341,44 +356,12 @@ class ABM:
                 
                 # Infect healthy people
                 for person in healthyPeople:
-                    ABM.applyRules(person, currentHour, len(patients))
-        """
-        3. Update at 00:00
-        """
-        if currentHour == 0:
-            self.removeDead()
-            self.accumulateData()
-            
-        """
-        4. Time Progression (hourly)
-        """
+                    ABM.applyRules(person, currentHour, currentDay, len(patients))
+
+        # 4. Time Progression (hourly)
         self.time += 1
-    
-    def rulesHome(self, person, currentHour:int):
-        # 1. Check current location
-        if currentHour == 19:
-            for person in self.people:
-                person.setGridLocation(person.getHouse().getGridLocation())
 
-        # 2. Speard of virus
-        for house in self.houses:
-            # Get healthy and infected people
-            healthyPeople = []
-            patients = []
-            for person in house.getMembers():
-                if person.getState() == 0 or person.getState() == 3:
-                    ABM.applyRules(person, currentHour)
-                    healthyPeople.append(person)
-                elif person.getState() == 1 or person.getState() == 2:
-                    patients.append(person)
-                
-                # Infect healthy people
-                for person in healthyPeople:
-                    chance = random.random()
-                    if chance > (1-INFECTION_RATE)**(len(patients)):
-                        person.setState(1)
-
-    def applyRules(person:Person, currentHour:int, num_Contact:int):
+    def applyRules(person:Person, currentHour:int, currentDay:int, num_Contact:int=0):
         """
         Rules of SEIRD model to apply for ABM
         @params:
@@ -391,28 +374,26 @@ class ABM:
             if chance > (1 - INFECTION_RATE)**num_Contact:
                 person.setState(1)
                 print("Exposed: S->E, Person: ", person.getID())
-        # Exposed: 1
-        elif person.getPrevState() == 1 and currentHour == 0:
-            if person.getIncubation() > 0:
-                person.decreaseIncubation()
-            elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
-                person.setState(2)
-                print("Infected: E->I, Person: ", person.getID())
-                # return
-            # chanceRecovery = random.random()
-            # if chanceRecovery <= RECOVERY_RATE:
-            #     person.setState(3)
+        
+        elif currentHour == 0 and currentDay != 0:
+            # Exposed: 1
+            if person.getPrevState() == 1:
+                if person.getIncubation() > 0:
+                    person.decreaseIncubation()
+                elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
+                    person.setState(2)
+                    print("Infected: E->I, Person: ", person.getID())
 
-        # Infectious: 2
-        elif person.prevState == 2 and currentHour == 0:
-            if chance <= RECOVERY_RATE:
-                # Recovered: 3
-                person.setState(3)
-            else:
-                chanceDeath = random.random()
-                if chanceDeath <= DEATH_RATE:
-                    # Dead: 4
-                    person.setState(4)
+            # Infectious: 2
+            elif person.getPrevState() == 2:
+                if chance <= RECOVERY_RATE:
+                    # Recovered: 3
+                    person.setState(3)
+                else:
+                    chanceDeath = random.random()
+                    if chanceDeath <= DEATH_RATE:
+                        # Dead: 4
+                        person.setState(4)
 
 
     def accumulateData(self):
@@ -501,7 +482,7 @@ class ABM:
     def getR_Arr(self):
         return self.r_arr
 
-    def getR_Arr(self):
+    def getD_Arr(self):
         return self.d_arr
     
     def getDays_Arr(self):

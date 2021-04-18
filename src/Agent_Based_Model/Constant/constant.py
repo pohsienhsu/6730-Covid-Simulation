@@ -1,8 +1,28 @@
 # Constant
 ###############################
-INIT_INFECTED = 0.01
+INIT_INFECTED = 0.005
 # S -> E
-INFECTION_RATE = 0.1
+"""
+* In CA, INFECTION_RATE=0.5 (Daily-Based)
+* INFECTION_RATE=0.0284 (Hourly-Based)
+<Calc>
+(1 - 0.5) = (1 - x)^24
+0.5 = 24*log(1-x)
+x = 0.0284
+
+Number of People
+- 1000 per 10000 grid (Model)
+- 182.9 per square miles (Georgia)
+<Calc>
+* Distance of People
+5 square miles per person
+sqrt(5)/100 = 0.022 (miles) = 35 m
+(0.9)^35 = 0.025
+
+* Reference:
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7340090/#bib0046
+"""
+INFECTION_RATE = 0.0284
 # Incubation days
 INCUBATION_DAYS = 7
 # E -> I
@@ -12,7 +32,7 @@ RECOVERY_RATE = 0.1
 # # R -> S
 # SUSCEPTIBLE_RATE = 0.1
 # I -> D
-DEATH_RATE = 0.05
+DEATH_RATE = 0.02
 
 HOUSE_SIZE = 4
 
