@@ -10,8 +10,6 @@ from .Location.Hospital import Hospital
 from .Location.House import House
 from .Location.Office import Office
 
-from ..Cellular_Automata.SEIRD import Person_SEIRD, Automata_SEIRD
-
 '''
 <Agent Based Model - Cellular Automata/SEIRD>
 
@@ -129,12 +127,13 @@ class ABM:
                 randomRow, randomCol = self.generate_coord()
                 if not self.world[randomRow][randomCol]:
                     # print(f"Office: {i}, ({randomRow}, {randomCol})")
-                    self.world[randomRow][randomCol] = Office(i, (randomRow, randomCol))
+                    self.world[randomRow][randomCol] = Office(id=i,grid_location=(randomRow, randomCol))
                     self.offices.append(self.world[randomRow][randomCol])
-                    # 1. 
+                    # 1. Fill in employees
                     self.world[randomRow][randomCol].setEmployees(arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)])
-                    # 2. 
-                    self.world[randomRow][randomCol]
+                    # 2. Create CA in Office
+                    self.world[randomRow][randomCol].init_CA()
+
                     for person in arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)]:
                         person.setOffice(self.world[randomRow][randomCol])
                     break
@@ -294,20 +293,21 @@ class ABM:
                     person.setGridLocation(person.getHouse().getGridLocation())
 
             # 2. Speard of virus
-            for house in self.houses:
-                # Get healthy and infected people
-                healthyPeople = []
-                patients = []
-                for person in house.getMembers():
-                    if person.getState() == 0 or person.getState() == 3:
-                        healthyPeople.append(person)
-                    elif person.getState() == 1 or person.getState() == 2:
-                        patients.append(person)
-                        ABM.applyRules(person, currentHour, currentDay)
-                
-                # Infect healthy people
-                for person in healthyPeople:
-                    ABM.applyRules(person, currentHour, currentDay, len(patients))
+            if (currentHour%23) == 0:
+                for house in self.houses:
+                    # Get healthy and infected people
+                    healthyPeople = []
+                    patients = []
+                    for person in house.getMembers():
+                        if person.getState() == 0 or person.getState() == 3:
+                            healthyPeople.append(person)
+                        elif person.getState() == 1 or person.getState() == 2:
+                            patients.append(person)
+                            ABM.applyRules(person, currentHour, currentDay)
+                    
+                    # Infect healthy people
+                    for person in healthyPeople:
+                        ABM.applyRules(person, currentHour, currentDay, len(patients))
         
         # Commute
         elif currentHour in COMMUTE_TIME:
@@ -345,18 +345,24 @@ class ABM:
 
             # 2. Spread of virus
             for office in self.offices:
+                # Original Version
                 # Get healthy and infected people
-                healthyPeople = []
-                patients = []
-                for person in office.getEmployees():
-                    if person.getState() == 0 or person.getState() == 3:
-                        healthyPeople.append(person)
-                    elif person.getState() == 1 or person.getState() == 2:
-                        patients.append(person)
+                # healthyPeople = []
+                # patients = []
+                # for person in office.getEmployees():
+                #     if person.getState() == 0 or person.getState() == 3:
+                #         healthyPeople.append(person)
+                #     elif person.getState() == 1 or person.getState() == 2:
+                #         patients.append(person)
                 
-                # Infect healthy people
-                for person in healthyPeople:
-                    ABM.applyRules(person, currentHour, currentDay, len(patients))
+                # # Infect healthy people
+                # for person in healthyPeople:
+                #     ABM.applyRules(person, currentHour, currentDay, len(patients))
+
+                # CA Version
+                if (currentHour%12)==0:
+                    office.getCA().nextGeneration()
+                # pass
 
         # 4. Time Progression (hourly)
         self.time += 1
@@ -373,7 +379,7 @@ class ABM:
         if person.getPrevState() == 0:
             if chance > (1 - INFECTION_RATE)**num_Contact:
                 person.setState(1)
-                print("Exposed: S->E, Person: ", person.getID())
+                # print("Exposed: S->E, Person: ", person.getID())
         
         elif currentHour == 0 and currentDay != 0:
             # Exposed: 1

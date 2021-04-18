@@ -3,7 +3,7 @@ from Agent_Based_Model.ABM import *
 
 world = ABM()
 world.createWorld(num_people=1000)
-day = 50
+day = 70
 hour = day*24
 
 for h in range(hour):
@@ -17,5 +17,3 @@ print("R: ", world.getR_Arr())
 print("D: ", world.getD_Arr())
 print("Days: ", world.getDays_Arr())
 world.plotCurve()
-
-
