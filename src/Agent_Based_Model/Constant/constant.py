@@ -22,11 +22,11 @@ sqrt(5)/100 = 0.022 (miles) = 35 m
 * Reference:
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7340090/#bib0046
 """
-INFECTION_RATE = 0.0284
+INFECTION_RATE = 0.028
 # Incubation days
 INCUBATION_DAYS = 7
 # E -> I
-EXPOSED_RATE = 0.8
+EXPOSED_RATE = 0.16
 # I -> R
 RECOVERY_RATE = 0.1
 # # R -> S

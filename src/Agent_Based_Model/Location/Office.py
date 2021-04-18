@@ -1,5 +1,6 @@
 from ..Constant.constant import *
 from .Cell import Cell
+from ..CA_ABM import *
 
 class Office(Cell):
     """
@@ -13,10 +14,11 @@ class Office(Cell):
     capacity: int
     employees: list (a list of Person class)
     """
-    def __init__(self, id:int ,grid_location:tuple, employees:list=[]):
+    def __init__(self, id:int ,grid_location:tuple):
         super().__init__(grid_location)
         self.id = id
-        self.employees = employees
+        self.CA = []
+        self.employees = []
         self.guests = []
         self.capacity = OFFICE_CAPACITY
     
@@ -26,8 +28,13 @@ class Office(Cell):
     ########################################
     # Methods
     ########################################
-
-
+    def init_CA(self):
+        """
+        Initialize the Cellular Automata model within each cell of our ABM grid.
+        Serving as an inner grid within each cells.
+        """
+        # (8, 5) -> Hard Code
+        self.CA = Automata(8, 5, self.employees)
 
     ########################################
     # Getters & Setters
@@ -44,3 +51,9 @@ class Office(Cell):
     
     def setCapacity(self, capacity):
         self.capacity = capacity
+
+    def getCA(self):
+        return self.CA
+
+    def setCA(self, CA):
+        self.CA = CA
