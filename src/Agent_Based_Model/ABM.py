@@ -60,6 +60,9 @@ class ABM:
         self.r_arr = []
         self.d_arr = []
         self.days = []
+        self.mask_arr = []
+        self.vaccinated_arr = []
+        self.hospitalized_arr = []
 
         for i in range(self.rows):
             column = []
@@ -85,15 +88,20 @@ class ABM:
         @params:
         num_people: int
         """
+        count = 0
         for i in range(num_people):
             chance = random.random()
             if chance <= INIT_INFECTED:
                 # Infected -> State=2
                 self.people.append(Person(id=i, state=2, prevState=2))
+                count += 1
             else:
                 # Susceptible -> State=0
                 self.people.append(Person(id=i, state=0, prevState=0))
-        print("Number of People: ", len(self.people))
+        if count == 0:
+            self.people[0].setState(2)
+            self.people[0].setPrevState(2)
+        # print("Number of People: ", len(self.people))
 
     def createHouse(self, num_people):
         """
@@ -208,29 +216,103 @@ class ABM:
         - self.grid_location update
         """
         for p in self.people:
-            currX, currY = p.getGridLocation()
-            newX, newY = currX + random.randint(-1, 1), currY + random.randint(-1, 1)
-            while True:
-                if (currX, currY) != (newX, newY) and newX < self.rows and newX >= 0 and newY < self.cols and newY >= 0:
-                    break
+            # Check if the person is hospitalized. If yes, then the person doesn't walk
+            if not p.getHospitalized():
+                currX, currY = p.getGridLocation()
                 newX, newY = currX + random.randint(-1, 1), currY + random.randint(-1, 1)
-            p.setGridLocation((newX, newY))
+                while True:
+                    if (currX, currY) != (newX, newY) and newX < self.rows and newX >= 0 and newY < self.cols and newY >= 0:
+                        break
+                    newX, newY = currX + random.randint(-1, 1), currY + random.randint(-1, 1)
+                p.setGridLocation((newX, newY))
 
-    def timeAdvance(self):
-        pass
-
-    def wearMask(self):
+    def wearMask(self, currentDay:int):
+        """
+        Implement random portion of the people to wear mask
+        Time: COMMUTE hours and OFFICE hours
+        @rtn
+        count: int (number of people wore mask)
+        """
+        # wear_rate = 0.01
+        # new_wear_rate = 0.01 + 0.01*currentday
+        total = 0
+        if WEAR_MASK_POPULATION == 0:
+            return
+        percent = WEAR_MASK_POPULATION+(currentDay*0.01)
         for p in self.people:
             chance = random.random()
-            if chance <= WEAR_MASK:
+            if chance <= percent:
                 p.setMask(True)
-
-    def getVaccinated(self):
+            if p.getMask():
+                total += 1
+        self.mask_arr.append(total)
+        # print(f"Mask Population: {total}")
+        
+    def takeDownMask(self):
+        """
+        Implement all people take dowm mask when returning their home
+        Time: HOME hours
+        """
         for p in self.people:
-            chacne = random.random()
-            if chance <= VACCINATED:
-                p.setVaccinated(True)
+            p.setMask(False)
 
+    def vaccinated(self):
+        """
+        Implement random portion of the people to get vaccinated
+        @rtn
+        count: int (number of people got vaccinated)
+        """
+        total = 0
+        def filterVaccine(person):
+            if (not person.getVaccinated() and person.getState() not in [3, 4]):
+                return True
+            else:
+                return False  
+        new_people = list(filter(filterVaccine, self.people))
+
+        for p in new_people:
+            chance = random.random()
+            if chance <= VACCINATED_POPULATION:
+                p.setVaccinated(True)
+                total += 1
+        
+        prev = 0 if len(self.vaccinated_arr) == 0 else self.vaccinated_arr[-1]
+        self.vaccinated_arr.append(prev+total)
+        # print("Vaccinated Population: ", total)
+
+    def hospitalized(self):
+        """
+        Implement function to put infected population into hospital, hospitalized
+        Time: HOME hour
+        """
+        def filterInfected(person):
+            if person.getState() == 2:
+                return True
+            else:
+                return False
+
+        infected_pp = list(filter(filterInfected, self.people))
+        
+        for p in infected_pp:
+            chance = random.random()
+            if chance <= HOSPITALIZED:
+                p.setHospitalized(True)
+                p.setGridLocation(self.hospitals[0].getGridLocation())
+                self.hospitals[0].getPatients()
+
+    def checkOutHospital(self, currentHour, currentDay):
+        """
+        Implement people that are hospitalized can recover and return back home
+        Time: HOME hour
+        """
+        patients = self.hospitals[0].getPatients()
+        
+        for p in patients:
+            ABM.applyRules(p, currentHour, currentDay)
+            house_loc = p.getHouse().getGridLocation()
+            p.setGridLocation(house_loc)
+            p.setHospitalized(False)
+    
     def removeDead(self):
         """
         Removes dead people from associated locations
@@ -261,15 +343,14 @@ class ABM:
             hos_removed = list(filter(findDead, hos.getPatients()))
             hos.setPatients(hos_removed)
 
-
     def nextGeneration(self):
         """
         1. Move to the "next" generation
         2. Time Check - Actions vary in differnt hour
-            - 1900 - 0700 -> Home
-            - 0700 - 0900 -> Commute (Random Walk)
-            - 0900 - 1700 -> Work
-            - 1700 - 1900 -> Commute / Happy (Random Walk)
+            - 1900 - 0659 -> Home
+            - 0700 - 0859 -> Commute (Random Walk)
+            - 0900 - 1659 -> Work
+            - 1700 - 1859 -> Commute / Happy (Random Walk)
         3. Update at 00:00
             - Remove dead people
             - Get daily SEIRD data
@@ -284,11 +365,14 @@ class ABM:
         # 2. Time Check - Actions vary in differnt hour
         currentDay = self.getDay()
         currentHour = self.getHour()
-        print(f"Day{currentDay} at {currentHour}:00")
+        # print(f"Day{currentDay} at {currentHour}:00")
 
         # 3. Update at 00:00
         if currentHour == 0:
             self.removeDead()
+            if currentDay >= 21: 
+                self.hospitalized()
+                self.checkOutHospital(currentHour, currentDay)
             self.accumulateData()
 
         # Home
@@ -297,25 +381,42 @@ class ABM:
             # Check time: 19:00 & the initial time (first hour of the first day)
             if currentHour == 19 or (currentHour == 0 and currentDay == 0):
                 for person in self.people:
-                    person.setGridLocation(person.getHouse().getGridLocation())
+                    # Only Check People not in hospital from self.people
+                    if not person.getHospitalized():
+                        person.setGridLocation(person.getHouse().getGridLocation())
 
-            # 2. Speard of virus
-            if (currentHour%23) == 0:
+            # 2. Speard of virus at 00:00 per day
+            if (currentHour%24) == 0:
+                print(f"Day: {currentDay}")
                 for house in self.houses:
                     # Get healthy and infected people
                     healthyPeople = []
-                    patients = []
+                    patients_mask = 0
+                    patients_no_mask = 0
                     for person in house.getMembers():
-                        if person.getState() == 0 or person.getState() == 3:
-                            healthyPeople.append(person)
-                        elif person.getState() == 1 or person.getState() == 2:
-                            patients.append(person)
-                            ABM.applyRules(person, currentHour, currentDay)
+                        # Only Check People not in hospital from self.people
+                        if not person.getHospitalized():
+                            if person.getState() == 0 or person.getState() == 3:
+                                healthyPeople.append(person)
+                            elif person.getState() == 1 or person.getState() == 2:
+                                if person.getMask():
+                                    patients_mask += 1
+                                else:
+                                    patients_no_mask += 1
+                                # Exposed or Infected Person could turn infected/recoverd/death
+                                ABM.applyRules(person, currentHour, currentDay)
                     
                     # Infect healthy people
                     for person in healthyPeople:
-                        ABM.applyRules(person, currentHour, currentDay, len(patients))
-        
+                        ABM.applyRules(person, currentHour, currentDay, patients_mask, patients_no_mask)
+
+            # 3. Wear mask before going to work
+            if currentHour == 6:
+                self.wearMask(currentDay)
+            elif currentHour == 19:
+                self.takeDownMask()
+                self.vaccinated()
+
         # Commute
         elif currentHour in COMMUTE_TIME:
             # 1. Check current location
@@ -330,25 +431,36 @@ class ABM:
             '''
             infectedGrid = {}
             for person in self.people:
-                if person.getState() == 1 or person.getState() == 2:
+                # Only Check People not in hospital from self.people
+                if person.getState() == 1 or person.getState() == 2 and not person.getHospitalized:
                     if person.getGridLocation() not in infectedGrid.keys():
-                        infectedGrid[person.getGridLocation()] = 1
+                        infectedGrid[person.getGridLocation()] = {"mask": 0, "no_mask": 0}
+
+                    if person.getMask():
+                        infectedGrid[person.getGridLocation()]["mask"] += 1
                     else:
-                        infectedGrid[person.getGridLocation()] += 1
+                        infectedGrid[person.getGridLocation()]["no_mask"] += 1
             '''
             Loop through each person. If the person is susceptible 
             and stand on same location with infected or exposed people, we applied the applyRules function
             '''
             for person in self.people:
-                if person.getState() == 0 and person.getGridLocation() in infectedGrid.keys():
-                    ABM.applyRules(person, currentHour, currentDay, infectedGrid[person.getGridLocation()])
+                # Only Check People not in hospital from self.people
+                if person.getState() == 0 and person.getGridLocation() in infectedGrid.keys() and not person.getHospitalized():
+                    num_mask = infectedGrid[person.getGridLocation()]['mask']
+                    num_no_mask = infectedGrid[person.getGridLocation()]['no_mask']
+                    ABM.applyRules(person, currentHour, currentDay, num_mask, num_no_mask)
 
         # Work
         elif currentHour in WORK_TIME:
             # 1. Check current location
             if currentHour == 9:
                 for person in self.people:
-                    person.setGridLocation(person.getOffice().getGridLocation())
+                    # Only Check People not in hospital from self.people
+                    if not person.getHospitalized():
+                        person.setGridLocation(person.getOffice().getGridLocation())
+
+                
 
             # 2. Spread of virus
             for office in self.offices:
@@ -368,13 +480,15 @@ class ABM:
 
                 # CA Version
                 if (currentHour%12)==0:
+                    office.appendDummies()
+                    office.getCA().updateGrid(office.getEmployees())
                     office.getCA().nextGeneration()
                 # pass
 
         # 4. Time Progression (hourly)
         self.time += 1
 
-    def applyRules(person:Person, currentHour:int, currentDay:int, num_Contact:int=0):
+    def applyRules(person:Person, currentHour:int, currentDay:int, num_Contact_withMask:int=0, num_Contact_noMask:int=0):
         """
         Rules of SEIRD model to apply for ABM
         @params:
@@ -384,7 +498,12 @@ class ABM:
         chance = random.random()
         # Susceptible: 0
         if person.getPrevState() == 0:
-            if chance > (1 - INFECTION_RATE)**num_Contact:
+            infected_rate = INFECTION_RATE
+            if person.getMask():
+                infected_rate *= WEAR_MASK
+            if person.getVaccinated():
+                infected_rate *= VACCINATED
+            if chance > (1 - infected_rate*WEAR_MASK)**num_Contact_withMask * (1 - infected_rate)**num_Contact_noMask:
                 person.setState(1)
                 # print("Exposed: S->E, Person: ", person.getID())
         
@@ -395,7 +514,7 @@ class ABM:
                     person.decreaseIncubation()
                 elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
                     person.setState(2)
-                    print("Infected: E->I, Person: ", person.getID())
+                    # print("Infected: E->I, Person: ", person.getID())
 
             # Infectious: 2
             elif person.getPrevState() == 2:
@@ -407,7 +526,6 @@ class ABM:
                     if chanceDeath <= DEATH_RATE:
                         # Dead: 4
                         person.setState(4)
-
 
     def accumulateData(self):
         '''
@@ -451,6 +569,9 @@ class ABM:
 
     def getPeople(self):
         return self.people
+    
+    def getHospital(self):
+        return self.hospitals
 
     def getPeopleState(self):
         peopleState = []
@@ -500,3 +621,13 @@ class ABM:
     
     def getDays_Arr(self):
         return self.days
+
+    def getMask_Arr(self):
+        if len(self.mask_arr) == 0:
+            return [0]
+        return self.mask_arr
+    
+    def getVaccinated_Arr(self):
+        if len(self.vaccinated_arr) == 0:
+            return [0]
+        return self.vaccinated_arr

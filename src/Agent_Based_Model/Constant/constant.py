@@ -45,8 +45,13 @@ COMMUTE_TIME = [7, 8, 17, 18]
 WORK_TIME = [9, 10, 11, 12, 13, 14, 15, 16]
 
 WEAR_MASK = 0.5
+WEAR_MASK_POPULATION = 0.01
 
-VACCINATED = 0.9
+VACCINATED = 0.1
+VACCINATED_POPULATION = 0.01
+
+HOSPITALIZED = 0
+
 ###############################
 
 cmaps = {

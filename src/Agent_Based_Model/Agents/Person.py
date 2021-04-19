@@ -7,7 +7,7 @@ class Person:
         Each Person would represent each individuals within our simulation.
 
     @attrs: 
-    state: int (0: susceptible, 1: exposed, 2: infectious, 3: recovered, 4: dead)
+    state: int (0: susceptible, 1: exposed, 2: infectious, 3: recovered, 4: dead, 5: dummy)
     prevState: int
     grid_location: tuple (ex. (x,y))
     medical: dict (ex. {mask: False, vaccinated: False, hospitalized: False, incubation: 0})
@@ -29,7 +29,9 @@ class Person:
             self.medical = medical
 
     def __repr__(self):
-        return f"<Person: id={id(self)} state={self.state} loc={self.grid_location}>"
+        vaccinated = self.medical["vaccinated"]
+        return f"<Person: id={self.id} vaccinated={vaccinated} state={self.state}>"
+        # return f"<Person: id={id(self)} state={self.state} loc={self.grid_location}>"
 
     ########################################
     # Methods

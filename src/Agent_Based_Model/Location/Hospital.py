@@ -36,6 +36,17 @@ class Hospital(Cell):
 
     def setPatients(self, patients):
         self.patients = patients
+    
+    def checkIn(self, patient):
+        self.patients.append(patient)
+    
+    def checkOut(self, patient):
+        def filterCheckOut(p):
+            if p.getID() == patient.getID():
+                return False
+            else:
+                return True
+        self.patients = list(filter(filterCheckOut, self.patients))
 
     def getCapacity(self):
         return self.capacity
