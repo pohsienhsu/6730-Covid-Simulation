@@ -41,7 +41,7 @@ self.vaccinated
 '''
 
 class ABM:
-    def __init__(self, numcols: int = 100, numrows: int = 100):
+    def __init__(self, numcols: int = 100, numrows: int = 100, zombieMode: bool = False):
         self.world = []
         self.rows = numrows
         self.cols = numcols
@@ -51,6 +51,7 @@ class ABM:
         self.offices = []
         self.houses = []
         self.hospitals = []
+        self.zombieMode = zombieMode
 
         # Plotting Purposes - Keep Record of the number of SEIRD in every hour
         self.s_arr = []
@@ -219,12 +220,18 @@ class ABM:
         pass
 
     def wearMask(self):
-        pass
-    
-    def getVaccinated(self):
-        pass
+        for p in self.people:
+            chance = random.random()
+            if chance <= WEAR_MASK:
+                p.setMask(True)
 
-    def removeDead(self, zombieMode=False):
+    def getVaccinated(self):
+        for p in self.people:
+            chacne = random.random()
+            if chance <= VACCINATED:
+                p.setVaccinated(True)
+
+    def removeDead(self):
         """
         Removes dead people from associated locations
         including houses, offices, and hosptials
@@ -236,7 +243,7 @@ class ABM:
             else:
                 return True
         # remove dead people
-        if not zombieMode:
+        if not self.zombieMode:
             for p in self.people:
                 if p.getState() == 4:
                     self.dead.append(p)
