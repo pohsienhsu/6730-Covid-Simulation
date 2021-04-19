@@ -57,3 +57,10 @@ class Office(Cell):
 
     def setCA(self, CA):
         self.CA = CA
+
+    def appendDummies(self):
+        current_Num = len(self.employees)
+        num_Dummies = OFFICE_CAPACITY - current_Num
+        for i in range(num_Dummies):
+            self.employees.append(Person(-1, 5, 5))
+        
