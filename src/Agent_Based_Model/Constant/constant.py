@@ -22,7 +22,7 @@ sqrt(5)/100 = 0.022 (miles) = 35 m
 * Reference:
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7340090/#bib0046
 """
-INFECTION_RATE = 0.028
+INFECTION_RATE = 0.5
 # Incubation days
 INCUBATION_DAYS = 7
 # E -> I
@@ -45,13 +45,15 @@ COMMUTE_TIME = [7, 8, 17, 18]
 WORK_TIME = [9, 10, 11, 12, 13, 14, 15, 16]
 
 WEAR_MASK = 0.5
-WEAR_MASK_POPULATION = 0.01
+WEAR_MASK_POPULATION = 0.5
 
 VACCINATED = 0.1
-VACCINATED_POPULATION = 0.01
+VACCINATED_POPULATION = 0.5
 
-HOSPITALIZED = 0
+HOSPITALIZED = 0.5
 
+# The number of days before anyone could be hospitalized
+BEFORE_HOSPITAL = 7
 ###############################
 
 cmaps = {

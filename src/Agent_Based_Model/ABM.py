@@ -39,9 +39,30 @@ self.mask
 self.vaccinated
 
 '''
+INFECTION_RATE = 0.5
+# Incubation days
+INCUBATION_DAYS = 7
+# E -> I
+EXPOSED_RATE = 0.16
+# I -> R
+RECOVERY_RATE = 0.1
+# # R -> S
+# SUSCEPTIBLE_RATE = 0.1
+# I -> D
+DEATH_RATE = 0.02
+WEAR_MASK = 0.5
+WEAR_MASK_POPULATION = 0.5
+
+VACCINATED = 0.1
+VACCINATED_POPULATION = 0.5
+
+HOSPITALIZED = 0.5
 
 class ABM:
-    def __init__(self, numcols: int = 100, numrows: int = 100, zombieMode: bool = False):
+    def __init__(self, numcols: int = 100, numrows: int = 100, zombieMode: bool = False, INIT_INFECTED=INIT_INFECTED, \
+                 INFECTION_RATE=INFECTION_RATE, INCUBATION_DAYS=INCUBATION_DAYS, EXPOSED_RATE=EXPOSED_RATE, \
+                 RECOVERY_RATE=RECOVERY_RATE, DEATH_RATE=DEATH_RATE, WEAR_MASK=WEAR_MASK, WEAR_MASK_POPULATION=WEAR_MASK_POPULATION, \
+                 VACCINATED=VACCINATED, VACCINATED_POPULATION=VACCINATED_POPULATION, HOSPITALIZED=HOSPITALIZED, BEFORE_HOSPITAL=BEFORE_HOSPITAL):
         self.world = []
         self.rows = numrows
         self.cols = numcols
@@ -51,7 +72,7 @@ class ABM:
         self.offices = []
         self.houses = []
         self.hospitals = []
-        self.zombieMode = zombieMode
+        self.zombieMode = zombieMode 
 
         # Plotting Purposes - Keep Record of the number of SEIRD in every hour
         self.s_arr = []
@@ -63,6 +84,21 @@ class ABM:
         self.mask_arr = []
         self.vaccinated_arr = []
         self.hospitalized_arr = []
+
+        # Constants
+        self.INIT_INFECTED = INIT_INFECTED
+        self.INFECTION_RATE = INFECTION_RATE
+        self.INCUBATION_DAYS = INCUBATION_DAYS
+        self.EXPOSED_RATE = EXPOSED_RATE
+        self.RECOVERY_RATE = RECOVERY_RATE
+        self.DEATH_RATE = DEATH_RATE
+        self.WEAR_MASK = WEAR_MASK
+        self.WEAR_MASK_POPULATION = WEAR_MASK_POPULATION
+        self.VACCINATED = VACCINATED
+        self.VACCINATED_POPULATION = VACCINATED_POPULATION
+        self.HOSPITALIZED = HOSPITALIZED
+        self.BEFORE_HOSPITAL = BEFORE_HOSPITAL
+
 
         for i in range(self.rows):
             column = []
@@ -91,7 +127,7 @@ class ABM:
         count = 0
         for i in range(num_people):
             chance = random.random()
-            if chance <= INIT_INFECTED:
+            if chance <= self.INIT_INFECTED:
                 # Infected -> State=2
                 self.people.append(Person(id=i, state=2, prevState=2))
                 count += 1
@@ -141,7 +177,7 @@ class ABM:
                     # 1. Fill in employees
                     self.world[randomRow][randomCol].setEmployees(arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)])
                     # 2. Create CA in Office
-                    self.world[randomRow][randomCol].init_CA()
+                    self.world[randomRow][randomCol].init_CA(self.INFECTION_RATE, self.WEAR_MASK, self.VACCINATED)
 
                     for person in arr[i*OFFICE_CAPACITY: OFFICE_CAPACITY*(i+1)]:
                         person.setOffice(self.world[randomRow][randomCol])
@@ -236,9 +272,9 @@ class ABM:
         # wear_rate = 0.01
         # new_wear_rate = 0.01 + 0.01*currentday
         total = 0
-        if WEAR_MASK_POPULATION == 0:
+        if self.WEAR_MASK_POPULATION == 0:
             return
-        percent = WEAR_MASK_POPULATION+(currentDay*0.01)
+        percent = self.WEAR_MASK_POPULATION+(currentDay*0.01)
         for p in self.people:
             chance = random.random()
             if chance <= percent:
@@ -272,7 +308,7 @@ class ABM:
 
         for p in new_people:
             chance = random.random()
-            if chance <= VACCINATED_POPULATION:
+            if chance <= self.VACCINATED_POPULATION:
                 p.setVaccinated(True)
                 total += 1
         
@@ -295,10 +331,10 @@ class ABM:
         
         for p in infected_pp:
             chance = random.random()
-            if chance <= HOSPITALIZED:
+            if chance <= self.HOSPITALIZED:
                 p.setHospitalized(True)
                 p.setGridLocation(self.hospitals[0].getGridLocation())
-                self.hospitals[0].getPatients()
+                self.hospitals[0].checkIn(p)
 
     def checkOutHospital(self, currentHour, currentDay):
         """
@@ -308,10 +344,11 @@ class ABM:
         patients = self.hospitals[0].getPatients()
         
         for p in patients:
-            ABM.applyRules(p, currentHour, currentDay)
+            self.applyRules(p, currentHour, currentDay)
             house_loc = p.getHouse().getGridLocation()
             p.setGridLocation(house_loc)
             p.setHospitalized(False)
+            self.hospitals[0].checkOut(p)
     
     def removeDead(self):
         """
@@ -370,7 +407,7 @@ class ABM:
         # 3. Update at 00:00
         if currentHour == 0:
             self.removeDead()
-            if currentDay >= 21: 
+            if currentDay >= self.BEFORE_HOSPITAL: 
                 self.hospitalized()
                 self.checkOutHospital(currentHour, currentDay)
             self.accumulateData()
@@ -387,7 +424,7 @@ class ABM:
 
             # 2. Speard of virus at 00:00 per day
             if (currentHour%24) == 0:
-                print(f"Day: {currentDay}")
+                # print(f"Day: {currentDay}")
                 for house in self.houses:
                     # Get healthy and infected people
                     healthyPeople = []
@@ -404,11 +441,11 @@ class ABM:
                                 else:
                                     patients_no_mask += 1
                                 # Exposed or Infected Person could turn infected/recoverd/death
-                                ABM.applyRules(person, currentHour, currentDay)
+                                self.applyRules(person, currentHour, currentDay)
                     
                     # Infect healthy people
                     for person in healthyPeople:
-                        ABM.applyRules(person, currentHour, currentDay, patients_mask, patients_no_mask)
+                        self.applyRules(person, currentHour, currentDay, patients_mask, patients_no_mask)
 
             # 3. Wear mask before going to work
             if currentHour == 6:
@@ -449,7 +486,7 @@ class ABM:
                 if person.getState() == 0 and person.getGridLocation() in infectedGrid.keys() and not person.getHospitalized():
                     num_mask = infectedGrid[person.getGridLocation()]['mask']
                     num_no_mask = infectedGrid[person.getGridLocation()]['no_mask']
-                    ABM.applyRules(person, currentHour, currentDay, num_mask, num_no_mask)
+                    self.applyRules(person, currentHour, currentDay, num_mask, num_no_mask)
 
         # Work
         elif currentHour in WORK_TIME:
@@ -488,7 +525,7 @@ class ABM:
         # 4. Time Progression (hourly)
         self.time += 1
 
-    def applyRules(person:Person, currentHour:int, currentDay:int, num_Contact_withMask:int=0, num_Contact_noMask:int=0):
+    def applyRules(self, person:Person, currentHour:int, currentDay:int, num_Contact_withMask:int=0, num_Contact_noMask:int=0):
         """
         Rules of SEIRD model to apply for ABM
         @params:
@@ -498,12 +535,12 @@ class ABM:
         chance = random.random()
         # Susceptible: 0
         if person.getPrevState() == 0:
-            infected_rate = INFECTION_RATE
+            infected_rate = self.INFECTION_RATE
             if person.getMask():
-                infected_rate *= WEAR_MASK
+                infected_rate *= self.WEAR_MASK
             if person.getVaccinated():
-                infected_rate *= VACCINATED
-            if chance > (1 - infected_rate*WEAR_MASK)**num_Contact_withMask * (1 - infected_rate)**num_Contact_noMask:
+                infected_rate *= self.VACCINATED
+            if chance > (1 - infected_rate*self.WEAR_MASK)**num_Contact_withMask * (1 - infected_rate)**num_Contact_noMask:
                 person.setState(1)
                 # print("Exposed: S->E, Person: ", person.getID())
         
@@ -512,18 +549,18 @@ class ABM:
             if person.getPrevState() == 1:
                 if person.getIncubation() > 0:
                     person.decreaseIncubation()
-                elif chance <= EXPOSED_RATE and person.getIncubation() == 0:
+                elif chance <= self.EXPOSED_RATE and person.getIncubation() == 0:
                     person.setState(2)
                     # print("Infected: E->I, Person: ", person.getID())
 
             # Infectious: 2
             elif person.getPrevState() == 2:
-                if chance <= RECOVERY_RATE:
+                if chance <= self.RECOVERY_RATE:
                     # Recovered: 3
                     person.setState(3)
                 else:
                     chanceDeath = random.random()
-                    if chanceDeath <= DEATH_RATE:
+                    if chanceDeath <= self.DEATH_RATE:
                         # Dead: 4
                         person.setState(4)
 
@@ -552,6 +589,19 @@ class ABM:
         axes.set_title("SEIRD Curve")
         axes.legend(["Susceptible", "Exposed", "Infected", "Recovered", "Dead"])
         plt.show()
+
+    def modelOutput(self, model_name: str) -> tuple:
+        arr_dict = {}
+        arr_dict["Susceptible"] = np.array(self.s_arr)
+        arr_dict["Exposed"] = np.array(self.e_arr)
+        arr_dict["Infected"] = np.array(self.i_arr)
+        arr_dict["Recovered"] = np.array(self.r_arr)
+        arr_dict["Dead"] = np.array(self.d_arr)
+        arr_dict["Days"] = np.array(self.days)
+        arr_dict["Mask"] = np.array(self.mask_arr)
+        arr_dict["Vaccinated"] = np.array(self.vaccinated_arr)
+        arr_dict["Hospitalized"] = np.array(self.hospitalized_arr)
+        return model_name, arr_dict
 
 
     ########################################
@@ -631,3 +681,8 @@ class ABM:
         if len(self.vaccinated_arr) == 0:
             return [0]
         return self.vaccinated_arr
+    
+    def getHospitalized_Arr(self):
+        if len(self.hospitalized_arr) == 0:
+            return [0]
+        return self.hospitalized_arr
