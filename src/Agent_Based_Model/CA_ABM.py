@@ -4,7 +4,7 @@ from Agent_Based_Model.Agents.Person import Person
 from .Constant.constant import *
 
 class Automata:
-    def __init__(self, rows:int, cols:int, employees:list):
+    def __init__(self, rows:int, cols:int, employees:list, INFECTION_RATE=INFECTION_RATE, WEAR_MASK=WEAR_MASK, VACCINATED=VACCINATED):
         self.rows = rows
         self.cols = cols
         self.numpeople = rows * cols
@@ -16,6 +16,10 @@ class Automata:
                 person = employees[i*cols + j]    
                 row.append(person) 
             self.people.append(row)
+        
+        self.INFECTION_RATE = INFECTION_RATE
+        self.WEAR_MASK = WEAR_MASK
+        self.VACCINATED = VACCINATED
         
     def __repr__(self):
         return f"<Automata: shape=({self.rows},{self.cols})>"
@@ -81,11 +85,11 @@ class Automata:
         # Susceptible: 0
         if person.prevState == 0:
             if infectedNeighbors_mask > 0 or infectedNeighbors_no_mask > 0:
-                infected_rate = INFECTION_RATE
+                infected_rate = self.INFECTION_RATE
                 if person.getMask():
-                    infected_rate *= WEAR_MASK
+                    infected_rate *= self.WEAR_MASK
                 if person.getVaccinated():
-                    infected_rate *= VACCINATED
+                    infected_rate *= self.VACCINATED
                 if chance > (1 - infected_rate*WEAR_MASK)**infectedNeighbors_mask * (1 - infected_rate)**infectedNeighbors_no_mask:
                     person.setState(1)
     

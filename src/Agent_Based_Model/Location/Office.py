@@ -28,13 +28,13 @@ class Office(Cell):
     ########################################
     # Methods
     ########################################
-    def init_CA(self):
+    def init_CA(self, INFECTION_RATE=INFECTION_RATE, WEAR_MASK=WEAR_MASK, VACCINATED=VACCINATED):
         """
         Initialize the Cellular Automata model within each cell of our ABM grid.
         Serving as an inner grid within each cells.
         """
         # (8, 5) -> Hard Code
-        self.CA = Automata(8, 5, self.employees)
+        self.CA = Automata(8, 5, self.employees, INFECTION_RATE=INFECTION_RATE, WEAR_MASK=WEAR_MASK, VACCINATED=VACCINATED)
 
     ########################################
     # Getters & Setters
