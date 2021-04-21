@@ -5,6 +5,8 @@ INIT_INFECTED = 0.005
 """
 * In CA, INFECTION_RATE=0.5 (Daily-Based)
 * INFECTION_RATE=0.0284 (Hourly-Based)
+* INFECTION_RATE = 0.109 (4 Hourly-Based)
+
 <Calc>
 (1 - 0.5) = (1 - x)^24
 0.5 = 24*log(1-x)
@@ -22,13 +24,13 @@ sqrt(5)/100 = 0.022 (miles) = 35 m
 * Reference:
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7340090/#bib0046
 """
-INFECTION_RATE = 0.5
+INFECTION_RATE = 0.1
 # Incubation days
 INCUBATION_DAYS = 7
 # E -> I
-EXPOSED_RATE = 0.16
+EXPOSED_RATE = 0.5
 # I -> R
-RECOVERY_RATE = 0.1
+RECOVERY_RATE = 0.75
 # # R -> S
 # SUSCEPTIBLE_RATE = 0.1
 # I -> D
@@ -53,7 +55,7 @@ VACCINATED_POPULATION = 0.5
 HOSPITALIZED = 0.5
 
 # The number of days before anyone could be hospitalized
-BEFORE_HOSPITAL = 7
+BEFORE_HOSPITAL = 14
 ###############################
 
 cmaps = {
