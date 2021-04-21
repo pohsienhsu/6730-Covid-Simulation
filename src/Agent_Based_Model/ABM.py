@@ -402,7 +402,6 @@ class ABM:
         # 2. Time Check - Actions vary in differnt hour
         currentDay = self.getDay()
         currentHour = self.getHour()
-        # print(f"Day{currentDay} at {currentHour}:00")
 
         # 3. Update at 00:00
         if currentHour == 0:
@@ -555,14 +554,23 @@ class ABM:
 
             # Infectious: 2
             elif person.getPrevState() == 2:
+                # Version 1 
                 if chance <= self.RECOVERY_RATE:
                     # Recovered: 3
                     person.setState(3)
-                else:
-                    chanceDeath = random.random()
-                    if chanceDeath <= self.DEATH_RATE:
-                        # Dead: 4
-                        person.setState(4)
+                elif chance <= self.DEATH_RATE + self.RECOVERY_RATE:
+                    # Dead: 4
+                    person.setState(4)
+
+                # Version 2
+                # if chance <= self.DEATH_RATE:
+                #     # Dead: 4
+                #     person.setState(4)
+                # elif chance <= self.RECOVERY_RATE + self.DEATH_RATE:
+                #     # Recovered: 3
+                #     person.setState(3)
+                
+
 
     def accumulateData(self):
         '''
