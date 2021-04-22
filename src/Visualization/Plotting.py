@@ -14,6 +14,9 @@ def plotCurves_main(mo_list:list, line:str = '-', marker='.'):
     # , sharex=True, sharey=True
     fig, axes = plt.subplots(num_models, dpi=150, figsize=(10, 10))
     label_list = [key for key in mo_list[0][1].keys()][:5]
+    standard_model_added = False
+    zombie_model_added = False
+    lines, labels = [], []
     
     for i in range(num_models):
         ax = axes[i]
@@ -24,16 +27,33 @@ def plotCurves_main(mo_list:list, line:str = '-', marker='.'):
         ax.plot(mo[1]["Days"], mo[1]["Infected"], line, label=label_list[2], marker=marker, color="r")
         ax.plot(mo[1]["Days"], mo[1]["Recovered"], line, label=label_list[3], marker=marker, color=(0.0, 1.0, 0.0))
         if "Zombies" in mo[1].keys():
-            ax.plot(mo[1]["Days"], mo[1]["Zombies"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1))
-            label_list = ["Susceptible", "Exposed", "Infected", "Recovered", "Zombies"]
+            ax.plot(mo[1]["Days"], mo[1]["Dead"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1), alpha=0)
+            label_list = ["Susceptible", "Exposed", "Infected", "Recovered", "Dead", "Zombies"]
+            ax.plot(mo[1]["Days"], mo[1]["Zombies"], line, label=label_list[5], marker=marker, color=(0, 0, 0, 1))
+            if not zombie_model_added:
+                lines_z, labels_z = ax.get_legend_handles_labels()
+                zombie_model_added = True
+                if not standard_model_added:
+                    lines = lines_z[:4] + [lines_z[5]]
+                    labels = labels_z[:4] + [labels_z[5]]
+                else:
+                    lines = lines + [lines_z[5]]
+                    labels = labels + [labels_z[5]]
         else:
             ax.plot(mo[1]["Days"], mo[1]["Dead"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1))
+            if not standard_model_added:
+                standard_model_added = True
+                lines_s, labels_s = ax.get_legend_handles_labels()
+                if not zombie_model_added:
+                    lines, labels = lines_s, labels_s
+                else:
+                    lines = lines[:4] + [lines_s[4]] + [lines[4]]
+                    labels = labels[:4] + [labels_s[4]] + [labels[4]]
+            
 
         ax.set_title(f"SEIRD: {mo[0]}")
-        # ax.legend([key for key in mo[1].keys()][:5])
         if (i == num_models - 1):
-            handles, labels = ax.get_legend_handles_labels()
-            fig.legend(handles, labels, loc="upper right")
+            fig.legend(lines, labels, loc="upper right")
     
     for ax in axes.flat:
         ax.set(xlabel='Days', ylabel='Number of People')
