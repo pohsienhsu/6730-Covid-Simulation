@@ -23,7 +23,11 @@ def plotCurves_main(mo_list:list, line:str = '-', marker='.'):
         ax.plot(mo[1]["Days"], mo[1]["Exposed"], line, label=label_list[1], marker=marker, color=(1.0, 0.7, 0.0))
         ax.plot(mo[1]["Days"], mo[1]["Infected"], line, label=label_list[2], marker=marker, color="r")
         ax.plot(mo[1]["Days"], mo[1]["Recovered"], line, label=label_list[3], marker=marker, color=(0.0, 1.0, 0.0))
-        ax.plot(mo[1]["Days"], mo[1]["Dead"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1))
+        if "Zombies" in mo[1].keys():
+            ax.plot(mo[1]["Days"], mo[1]["Zombies"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1))
+            label_list = ["Susceptible", "Exposed", "Infected", "Recovered", "Zombies"]
+        else:
+            ax.plot(mo[1]["Days"], mo[1]["Dead"], line, label=label_list[4], marker=marker, color=(0.5, 0, 0.5, 1))
 
         ax.set_title(f"SEIRD: {mo[0]}")
         # ax.legend([key for key in mo[1].keys()][:5])

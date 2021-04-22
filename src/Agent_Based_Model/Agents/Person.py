@@ -23,7 +23,8 @@ class Person:
                 "mask": False,
                 "vaccinated": False,
                 "hospitalized": False,
-                "incubation": 7
+                "incubation": 7,
+                "zombie": False
             }
         else:
             self.medical = medical
@@ -101,6 +102,12 @@ class Person:
 
     def setIncubation(self, day):
         self.medical["incubation"] = day
+
+    def getZombie(self):
+        return self.medical["zombie"]
+    
+    def setZombie(self, isZombie:bool):
+        self.medical["zombie"] = isZombie
 
     def decreaseIncubation(self):
         self.medical["incubation"] -= 1
