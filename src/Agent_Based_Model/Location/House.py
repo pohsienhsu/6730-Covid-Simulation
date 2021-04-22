@@ -26,13 +26,13 @@ class House(Cell):
     ########################################
     # Methods
     ########################################
-    # def init_CA(self):
-    #     """
-    #     Initialize the Cellular Automata model within each cell of our ABM grid.
-    #     Serving as an inner grid within each cells.
-    #     """
-    #     # (8, 5) -> Hard Code
-    #     self.CA = Automata(8, 5, self.employees)
+    def leaveHouse(self, person):
+        def filterLeave(p):
+            if p.getID() == person.getID():
+                return False
+            else:
+                return True
+        self.members = list(filter(filterLeave, self.members))
 
 
     ########################################

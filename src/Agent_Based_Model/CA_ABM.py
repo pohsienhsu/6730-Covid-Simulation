@@ -9,6 +9,7 @@ class Automata:
         self.cols = cols
         self.numpeople = rows * cols
         self.people = []
+        self.num_zombies = 0
 
         for i in range(rows):
             row = []
@@ -23,6 +24,9 @@ class Automata:
         
     def __repr__(self):
         return f"<Automata: shape=({self.rows},{self.cols})>"
+
+    def setNumZombies(self, num_zombies):
+        self.num_zombies = num_zombies
 
     ########################################
     # Methods
@@ -73,13 +77,22 @@ class Automata:
                         infectedNeighbors_mask += 1
                     else:
                         infectedNeighbors_no_mask += 1
-
+                
                 currPerson = self.people[i][j]
-                self.applyRulesOfInfection(currPerson, infectedNeighbors_mask, infectedNeighbors_no_mask)
+                
+                if self.num_zombies != 0:
+                    zombies = 0
+                    if (jprev >= 0 and self.people[i][jprev].getZombie()): zombies += 1
+                    if (jnext < self.cols and self.people[i][jnext].getZombie()): zombies += 1
+                    if (iprev >= 0 and self.people[iprev][j].getZombie()): zombies += 1
+                    if (inext < self.rows and self.people[inext][j].getZombie()): zombies += 1
+                    self.applyRulesOfInfection(currPerson, infectedNeighbors_mask, infectedNeighbors_no_mask, zombies)
+                else:                
+                    self.applyRulesOfInfection(currPerson, infectedNeighbors_mask, infectedNeighbors_no_mask)
 
         # self.day += 1
 
-    def applyRulesOfInfection(self, person:Person, infectedNeighbors_mask:int=0, infectedNeighbors_no_mask:int=0):
+    def applyRulesOfInfection(self, person:Person, infectedNeighbors_mask:int=0, infectedNeighbors_no_mask:int=0, num_zombies:int=0):
         chance = random.random()
 
         # Susceptible: 0
@@ -90,6 +103,15 @@ class Automata:
                     infected_rate *= self.WEAR_MASK
                 if person.getVaccinated():
                     infected_rate *= self.VACCINATED
-                if chance > (1 - infected_rate*WEAR_MASK)**infectedNeighbors_mask * (1 - infected_rate)**infectedNeighbors_no_mask:
+                if chance > (1 - infected_rate*WEAR_MASK)**infectedNeighbors_mask * (1 - infected_rate)**(infectedNeighbors_no_mask + num_zombies):
                     person.setState(1)
+
+        elif person.getPrevState() == 3 and num_zombies != 0:
+            infected_rate = self.INFECTION_RATE
+            if person.getMask():
+                infected_rate *= self.WEAR_MASK
+            if person.getVaccinated():
+                infected_rate *= self.VACCINATED
+            if chance > (1 - infected_rate*self.WEAR_MASK)**infectedNeighbors_mask * (1 - infected_rate)**(infectedNeighbors_no_mask + num_zombies):
+                person.setState(1)
     

@@ -64,3 +64,22 @@ class Office(Cell):
         for i in range(num_Dummies):
             self.employees.append(Person(-1, 5, 5))
         
+    def appendZombies(self, num_zombies):
+        self.CA.setNumZombies(num_zombies)
+        current_Num = len(self.employees)
+        num_Dummies = OFFICE_CAPACITY - current_Num - num_zombies
+        for i in range(num_Dummies):
+            self.employees.append(Person(-1, 5, 5))
+        for i in range(num_zombies):
+            zombie = Person(-1, 4, 4)
+            zombie.setZombie(True)
+            self.employees.append(zombie)
+
+    def clearDummies(self):
+        def filterDummy(person):
+            if person.getID() == -1:
+                return False
+            else:
+                return True
+        self.employees = list(filter(filterDummy, self.employees))
+        
