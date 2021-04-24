@@ -27,6 +27,13 @@ Model 101 <SIR/Automata>
 -> Print SIR curve
 
 '''
+if __name__ == "__main__":
+    sir = Automata_SIR()
+    days = 20
+    for i in range(days):
+        sir.nextGeneration()
+
+    sir.printMatrix_multi()
 
 
 class Person_SIR(Person):
@@ -61,6 +68,7 @@ class Automata_SIR(Automata):
         self.i_arr.append(self.getI())
         self.r_arr.append(self.getR())
         self.days.append(self.day)
+        self.peopleStates_arr.append(self.getPeopleState())
 
 
     def plotCurve(self):
@@ -100,7 +108,8 @@ class Automata_SIR(Automata):
 
                 currPerson = self.people[i][j]
                 self.applyRulesOfInfection(currPerson, infectedNeighbors)
-
+        
+        self.accumulateData()
         self.day += 1
 
     
