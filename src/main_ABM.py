@@ -1,6 +1,6 @@
 from Agent_Based_Model.Constant.constant import *
 from Agent_Based_Model.ABM import *
-from Visualization.Plotting import *
+from Visualization.Plotting_ABM import plotCurves_main, printMatrix
 
 """
 To-Do List:
@@ -33,7 +33,7 @@ INIT_INFECTED=0.005, INFECTION_RATE=0.1, EXPOSED_RATE=0.5, RECOVERY_RATE=0.75, \
         VACCINATED=0.1, VACCINATED_POPULATION=0.5, HOSPITALIZED=0.5, BEFORE_HOSPITAL=14
 """
 
-day = 200
+day = 100
 hour = (day+1)*24
 
 world1 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, WEAR_MASK_POPULATION=0, VACCINATED_POPULATION=0, HOSPITALIZED=0)
@@ -60,9 +60,6 @@ for h in range(hour):
     worldZ.nextGeneration()
     
 plotCurves_main([world1.modelOutput("No Mask & Vaccine & Hospital"), world2.modelOutput("Hospitalization"), world3.modelOutput("Hospitalization & Mask"), world4.modelOutput("Good Anti-Virus Protection"), worldZ.modelOutput("Zombie Mode")])
-
-
-
 
 # print(f"""
 # ###########Constant################
@@ -91,6 +88,3 @@ plotCurves_main([world1.modelOutput("No Mask & Vaccine & Hospital"), world2.mode
 # Vaccinated_Population = {world1.getVaccinated_Arr()[-1]}
 # Hospital_Infected_Population = {len(world1.getHospital()[0].getPatients())}
 # """)
-
-# world1.plotCurve()
-# plotCurves_main([world1.modelOutput("Default"), world2.modelOutput("High Death Rate"), world3.modelOutput("No Mask & Vaccine")])

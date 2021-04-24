@@ -1,4 +1,3 @@
-
 import pylab as plt
 import numpy as np
 import matplotlib.patches as mpatches
@@ -83,6 +82,7 @@ class Automata:
         self.day = 0
 
         self.people = []
+        self.peopleStates_arr = []
 
         for i in range(numcols):
             column = []
@@ -106,6 +106,30 @@ class Automata:
             # print(f"Row: {i}, Column: {column}")
             mat.append(column)
         return np.array(mat)
+
+    def printMatrix_multi(self, model:str, num_plots:int=4):
+        fig, axes = plt.subplots(1, num_plots, dpi=150, figsize=(10, 10))
+        for i in range(num_plots):
+            index = i if (i==0) else int((self.day/num_plots))*i
+            mat = self.peopleStates_arr[index]
+
+            arrayShow = np.array([[cmaps[model][i] for i in j] for j in mat])
+            patches = [mpatches.Patch(color=cmaps[model][i], label=labels[model][i])
+                    for i in cmaps[model]]
+            axes[i].imshow(arrayShow)
+            
+            axes[i] = plt.gca()
+            # # axes[i].set_title(f"Covid-19 Spread Situation - {model}\n Day: {index}/{self.day}")
+
+            # if i == num_plots-1:
+                # axes[i].legend(handles=patches, title="Status",
+                # loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+                # fig.suptitle('This is a somewhat long figure title', fontsize=16)
+            for ax in axes.flat:
+                ax.set(title="subplot")
+                ax.xaxis.set_ticklabels([])
+                ax.yaxis.set_ticklabels([])
+        plt.show()
 
 
     def printMatrix(self, cmap, labels, model="SIR"):
@@ -195,4 +219,6 @@ class Automata:
         d = np.count_nonzero(self.getPeopleState() == 4)
         # print("R: ", r)
         return d
-    
+
+    def getPeopleStates_Arr(self):
+        return self.peopleStates_arr

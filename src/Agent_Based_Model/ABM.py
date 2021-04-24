@@ -231,24 +231,6 @@ class ABM:
         self.createHospital()
         self.createPath()
 
-
-    # def printMatrix(self, cmap, labels, model="SIR"):
-    #     mat = self.getPeopleState()
-
-    #     arrayShow = np.array([[cmap[i] for i in j] for j in mat])
-    #     patches = [mpatches.Patch(color=cmap[i], label=labels[i])
-    #                for i in cmap]
-    #     plt.imshow(arrayShow)
-    #     plt.legend(handles=patches, title="Status",
-    #                loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-    #     ax = plt.gca()
-    #     ax.set_xticks(np.arange(-.5, self.rows, 1))
-    #     ax.set_yticks(np.arange(-.5, self.cols, 1))
-    #     ax.xaxis.set_ticklabels([])
-    #     ax.yaxis.set_ticklabels([])
-    #     plt.grid(which="major",color='k', ls="-",lw=(200/(self.rows * self.cols)))
-    #     plt.title(f"Covid-19 Spread Situation - {model}\n Day: {self.day}")
-
     def randomWalk(self):
         """
         All person walks from different starting point during each commute period
