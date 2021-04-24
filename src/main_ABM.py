@@ -1,6 +1,6 @@
 from Agent_Based_Model.Constant.constant import *
 from Agent_Based_Model.ABM import *
-from Visualization.Plotting_ABM import plotCurves_main, printMatrix
+from Visualization.Plotting_ABM import plotCurves_main
 
 """
 To-Do List:

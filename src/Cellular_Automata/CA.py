@@ -183,6 +183,7 @@ class Automata:
                 currPerson = self.people[i][j]
                 self.applyRulesOfInfection(currPerson, infectedNeighbors)
 
+        self.accumulateData()
         self.day += 1
 
 
