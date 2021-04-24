@@ -33,38 +33,33 @@ INIT_INFECTED=0.005, INFECTION_RATE=0.1, EXPOSED_RATE=0.5, RECOVERY_RATE=0.75, \
         VACCINATED=0.1, VACCINATED_POPULATION=0.5, HOSPITALIZED=0.5, BEFORE_HOSPITAL=14
 """
 
-day = 10
+day = 100
 hour = (day+1)*24
 
 world1 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, WEAR_MASK_POPULATION=0, VACCINATED_POPULATION=0, HOSPITALIZED=0)
 world1.createWorld(num_people=1000)
 
-# world2 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, VACCINATED_POPULATION=0, WEAR_MASK_POPULATION=0)
-# world2.createWorld(num_people=1000)
+world2 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, VACCINATED_POPULATION=0, WEAR_MASK_POPULATION=0)
+world2.createWorld(num_people=1000)
 
-# world3 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, VACCINATED_POPULATION=0)
-# world3.createWorld(num_people=1000)
+world3 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, VACCINATED_POPULATION=0)
+world3.createWorld(num_people=1000)
 
-# world4 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, WEAR_MASK_POPULATION=0.9, VACCINATED_POPULATION=0.1)
-# world4.createWorld(num_people=1000)
+world4 = ABM(INFECTION_RATE=0.1, EXPOSED_RATE=0.5, DEATH_RATE=0.02, RECOVERY_RATE=0.75, BEFORE_HOSPITAL=14, WEAR_MASK_POPULATION=0.9, VACCINATED_POPULATION=0.1)
+world4.createWorld(num_people=1000)
 
-# worldZ = ABM(zombieMode=True)
-# worldZ.createWorld(num_people=1000)
+worldZ = ABM(zombieMode=True)
+worldZ.createWorld(num_people=1000)
 
 for h in range(hour):
     if h%24==0: print(f"Day {h//24}")
     world1.nextGeneration()
-    # world2.nextGeneration()
-    # world3.nextGeneration()
-    # world4.nextGeneration()
-    # worldZ.nextGeneration()
+    world2.nextGeneration()
+    world3.nextGeneration()
+    world4.nextGeneration()
+    worldZ.nextGeneration()
     
-# plotCurves_main([world1.modelOutput("No Mask & Vaccine & Hospital"), world2.modelOutput("Hospitalization"), world3.modelOutput("Hospitalization & Mask"), world4.modelOutput("Good Anti-Virus Protection"), worldZ.modelOutput("Zombie Mode")])
-
-printMatrix(world1.modelOutput(""), 10)
-
-
-
+plotCurves_main([world1.modelOutput("No Mask & Vaccine & Hospital"), world2.modelOutput("Hospitalization"), world3.modelOutput("Hospitalization & Mask"), world4.modelOutput("Good Anti-Virus Protection"), worldZ.modelOutput("Zombie Mode")])
 
 # print(f"""
 # ###########Constant################
@@ -93,6 +88,3 @@ printMatrix(world1.modelOutput(""), 10)
 # Vaccinated_Population = {world1.getVaccinated_Arr()[-1]}
 # Hospital_Infected_Population = {len(world1.getHospital()[0].getPatients())}
 # """)
-
-# world1.plotCurve()
-# plotCurves_main([world1.modelOutput("Default"), world2.modelOutput("High Death Rate"), world3.modelOutput("No Mask & Vaccine")])
