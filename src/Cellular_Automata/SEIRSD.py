@@ -69,6 +69,7 @@ class Automata_SEIRSD(Automata):
         self.i_arr.append(self.getI())
         self.r_arr.append(self.getR())
         self.d_arr.append(self.getD())
+        self.peopleStates_arr.append(self.getPeopleState())
         self.days.append(self.day)
 
     def plotCurve(self):

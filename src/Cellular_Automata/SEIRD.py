@@ -71,6 +71,7 @@ class Automata_SEIRD(Automata):
         self.r_arr.append(self.getR())
         self.d_arr.append(self.getD())
         self.days.append(self.day)
+        self.peopleStates_arr.append(self.getPeopleState())
 
     def plotCurve(self):
         fig, axes = plt.subplots(figsize=(4.5, 2.3), dpi=150)
@@ -115,6 +116,7 @@ class Automata_SEIRD(Automata):
                 currPerson = self.people[i][j]
                 self.applyRulesOfInfection(currPerson, infectedNeighbors)
 
+        self.accumulateData()
         self.day += 1
 
 

@@ -1,4 +1,8 @@
 import pylab as plt
+import numpy as np
+import matplotlib.patches as mpatches
+
+from .constant_ABM import *
 # from ipywidgets import interact, IntSlider, FloatSlider
 # from matplotlib.pyplot import rcParams, figure, subplot, show
 # from matplotlib.pyplot import plot, quiver, streamplot, axhline, axvline, scatter
@@ -70,6 +74,29 @@ INIT_INFECTED=0.005, INFECTION_RATE=0.5, EXPOSED_RATE=0.16, RECOVERY_RATE=0.1, \
     SUSCEPTIBLE_RATE=0.1, DEATH_RATE=0.02, WEAR_MASK=0.5, WEAR_MASK_POPULATION=0.5, \
         VACCINATED=0.1, VACCINATED_POPULATION=0.5, HOSPITALIZED=0.5
 """
+
+# def printMatrix(model_output, days, size:tuple=(100,100), num_plots:int=4, model="SEIRD"):
+#         mat_list = model_output[1]["People_States"]
+#         fig, axes = plt.subplots(num_plots, dpi=150, figsize=(10, 10))
+#         for i in range(num_plots):
+#             index = i if i==0 else int((days/num_plots))*i-1
+#             mat = mat_list[index]
+#             print(mat)
+
+#             arrayShow = np.array([[cmaps[model][i] for i in j] for j in mat])
+#             patches = [mpatches.Patch(color=cmaps[model][i], label=labels[model][i])
+#                     for i in cmaps[model]]
+#             axes[i].imshow(arrayShow)
+#             axes[i].legend(handles=patches, title="Status",
+#                     loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+#             axes[i] = plt.gca()
+#             axes[i].set_xticks(np.arange(-.5, size[0], 1))
+#             axes[i].set_yticks(np.arange(-.5, size[1], 1))
+#             axes[i].xaxis.set_ticklabels([])
+#             axes[i].yaxis.set_ticklabels([])
+#             axes[i].grid(which="major",color='k', ls="-",lw=(200/(size[0] * size[1])))
+#             axes[i].title(f"Covid-19 Spread Situation - {model}\n Day: {index}")
+#         plt.show()
 
 # def run(a=0, b=1, c=-1, d=0, x0_0=1, x0_1=0, n_max=8):
 #     A = array([[a, b], [c, d]])
