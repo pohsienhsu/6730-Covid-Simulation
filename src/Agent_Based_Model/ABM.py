@@ -39,24 +39,6 @@ self.mask
 self.vaccinated
 
 '''
-INFECTION_RATE = 0.5
-# Incubation days
-INCUBATION_DAYS = 7
-# E -> I
-EXPOSED_RATE = 0.16
-# I -> R
-RECOVERY_RATE = 0.1
-# # R -> S
-# SUSCEPTIBLE_RATE = 0.1
-# I -> D
-DEATH_RATE = 0.02
-WEAR_MASK = 0.5
-WEAR_MASK_POPULATION = 0.5
-
-VACCINATED = 0.1
-VACCINATED_POPULATION = 0.5
-
-HOSPITALIZED = 0.5
 
 class ABM:
     def __init__(self, numcols: int = 100, numrows: int = 100, zombieMode: bool = False, INIT_INFECTED=INIT_INFECTED, \
