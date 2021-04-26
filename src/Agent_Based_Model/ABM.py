@@ -607,6 +607,16 @@ class ABM:
             arr_dict["Zombies"] = np.array(self.zombies_arr)
         return model_name, arr_dict
 
+    def analysis(self, name):
+        print(f"""
+        {name}
+        Highest Exposed Popluation: {max(self.getE_Arr())} at Day: {
+             self.getE_Arr().index(max(self.getE_Arr()))}
+        Highest Infected Popluation: {max(self.getI_Arr())} at Day: {
+            self.getI_Arr().index(max(self.getI_Arr()))}
+        Ratio of Susceptible Population: %.2f
+        """ % ((self.getS_Arr()[-1]/1000)))
+
 
     ########################################
     # Getters & Setters
