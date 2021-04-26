@@ -129,9 +129,9 @@ class Automata_SEIR(Automata):
                 person.setState(2)
                 return
         
-            chanceRecovery = random.random()
-            if chanceRecovery <= RECOVERY_RATE:
-                person.setState(3)
+            # chanceRecovery = random.random()
+            # if chanceRecovery <= RECOVERY_RATE:
+            #     person.setState(3)
         
         # Infectious: 2
         elif person.prevState == 2:
